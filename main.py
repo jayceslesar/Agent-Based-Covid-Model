@@ -10,7 +10,7 @@ from multiprocessing import Process
 BLACK = (0, 0, 0)
 rows = 20
 cols = 20
-steps = 100
+steps = 50
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
 height_per_block = WINDOW_HEIGHT // rows
@@ -37,6 +37,7 @@ def viz():
 
         pygame.display.update()
         time.sleep(0.2)
+    pygame.quit()
 
     # Finds R0
     total_infected = 0
