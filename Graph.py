@@ -7,7 +7,6 @@ import csv
 
 class DataSaver:
     def __init__(self, initial_uninfected, initial_infected, initial_exposed, initial_recovered, initial_dead, file_name, num_iterations):
-
         self.current_iteration = 0
         self.uninfected = [initial_uninfected]
         self.infected = [initial_infected]
@@ -39,6 +38,7 @@ class DataSaver:
         file.write(row)
         file.close()
 
+
 class Grapher:
     def __init__(self, file_name, num_agents, iterations):
         style.use('fivethirtyeight')
@@ -48,8 +48,8 @@ class Grapher:
         self.num_agents = num_agents
         self.iterations = iterations
 
-    def animate(self, i):
 
+    def animate(self, i):
         with open(self.file_name) as csvfile:
             readCSV = csv.reader(csvfile, delimiter = ',')
 
@@ -79,6 +79,7 @@ class Grapher:
         plt.legend(["Uninfected", "Infected", "Exposed", "Recovered"])
         plt.ylim(0,self.num_agents)
         plt.xlim(0,self.iterations)
+
 
     def draw_graph(self):
         ani = animation.FuncAnimation(self.fig, self.animate, interval = 20)

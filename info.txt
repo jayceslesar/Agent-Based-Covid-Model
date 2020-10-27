@@ -1,0 +1,79 @@
+TODO 10/7 ?:
+    Agent:
+        Track number of people infected: Done
+        Infectiveness per agent -> distribution? (introvert/extrovert)
+
+    Model/Space:
+        Probabilities:
+            Threshold to be a spreader/asymptomatic
+            How long to go from Exposure -> infected
+            DO: Distance between agents
+            Neighborhood (constraints on how far interactions spread)
+            Boundaries:
+                Adjacent -> define -> north south or corners as well?
+                Corners/Edges -> if time
+
+    Swapping:
+        Choose who is swapped (right now it is random so anyone)
+        Number of swaps per step? Swapping rate? (swaps per turn)
+
+
+TODO 10/7 actually:
+    NEEDS_WORK:: Neighborhood size per cell -> radius of infectivity
+
+    TODO:: Make swap customizeable:
+        Swap recovered person with uninfected person to move recovered closer to infection?
+        Time delay for contact tracing -> ?
+    DONE:: Visuals with PyGame
+    DONE:: Radius -> function/vectorize
+    DONE:: Boundaries -> add flag for corners and not corners
+
+    WAIT:: Add flag for wrap/sphere (implementing this will cause a lot of things to break) -> will need to add many if clauses in lots of places
+
+
+TODO 10/14
+    TODO:: realtime stats graph
+
+    TODO:: Make swap customizeable:
+            Pick someone recovered and swap with who has not been infected and is near an infected person
+            Time delay for contact tracing -> ?
+
+    WAIT:: More realism in interactions....radius, *aersol*, droplets
+
+    WAIT:: redo in C++ because it is slow
+        confirm everything works in python and then port it to C++ to run the simulations
+
+    WAIT:: Add flag for wrap/sphere (implementing this will cause a lot of things to break) -> will need to add many if clauses in lots of places
+
+TODO 10/14 actually:
+    TODO:: realtime stats graph
+
+    DONE:: Make swap customizeable:
+        Pick someone recovered and swap with who has not been infected and is near an infected person
+        Time delay for contact tracing -> ?
+
+    WAIT:: More realism in interactions....radius, *aersol*, droplets
+
+    IMPORTANT::WAIT:: redo in C++ because it is slow
+        confirm everything works in python and then port it to C++ to run the simulations
+
+    WAIT:: Add flag for wrap/sphere (implementing this will cause a lot of things to break) -> will need to add many if clauses in lots of places
+
+
+TODO 10/21
+    DONE:: realtime stats graph
+
+    DONE:: Make swap customizeable:
+        Pick someone recovered and swap with who has not been infected and is near an infected person
+
+    TODO:: fix run conditions:
+        run until no infections, stop run if no infections or initial infection is not spreadable
+
+    TODO:: when to update in the step and grab stats
+
+    TODO:: code cleanup (comments, explicit names, ect)
+
+    TODO:: realism (many aspects)
+
+    TODO:: CPP implementation ?
+
