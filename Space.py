@@ -209,9 +209,9 @@ class Space:
                         # check against each agent
                         if agent.infected and not agent.recovered:
                             if agent.neighborhood_size >= self.distance_dict[agent.number][curr_agent.number]:
-                                if curr_agent.name != agent.name and not curr_agent.exposed and not curr_agent.infected:
+                                if curr_agent.name != agent.name and not curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered:
                                     curr_agent.agent_who_exposed_me = agent
-                                    print(curr_agent.name + " got exposed by " + curr_agent.agent_who_exposed_me.name)
+                                    # print(curr_agent.name + " got exposed by " + curr_agent.agent_who_exposed_me.name)
                                     curr_agent.exposed = True
                                     curr_agent.untouched = False
                                     agent.num_infected += 1
@@ -239,7 +239,7 @@ class Space:
                 if curr_agent.days_exposed > self.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
                     curr_agent.infected = True
                     curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
-                    print(curr_agent.name + " got infected by " + curr_agent.agent_who_infected_me.name)
+                    # (curr_agent.name + " got infected by " + curr_agent.agent_who_infected_me.name)
                     curr_agent.agent_who_infected_me.total_infected += 1
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.exposed = False

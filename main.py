@@ -5,7 +5,9 @@ import Space
 import time
 import Graph
 import Space
+import SocialNetwork as sn
 from multiprocessing import Process
+
 
 BLACK = (0, 0, 0)
 rows = 20
@@ -38,6 +40,13 @@ def viz():
         pygame.display.update()
         time.sleep(0.2)
     pygame.quit()
+
+    # create social network
+    print("making social network...")
+    m.social_network = sn.SocialNetwork(m.initial_agent, m.agents)
+    # Prints out Social network
+    for key in m.social_network.network:
+        m.social_network.tracer(key)
 
     # Finds R0
     total_infected = 0
