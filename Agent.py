@@ -18,7 +18,9 @@ class Agent:
         self.num_infected = 0  # for stat tracking
         self.days_exposed = 0  # for stat tracking
         self.days_infected = 0
-        self.INFECTED_LENGTH = 15
+        self.INFECTED_LENGTH = random.uniform(7, 10)  # TODO:: guassian not uniform
+        self.INCUBATION_PERIOD = 3  # TODO:: random uniform 0-14 days // guassian 0 to 3 days with tail to 7
+        self.PROBABILITY_OF_INFECTION = 0.3  # for math later
         self.infectiveness = None  # how likely to infect another
         self.neighborhood_size = None  # how big of a radius can they infect others in
         self.tested_since_last_step = None

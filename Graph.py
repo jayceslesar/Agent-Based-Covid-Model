@@ -76,7 +76,7 @@ class Grapher:
         plt.title("Live Graph")
         plt.xlabel("Iterations")
         plt.ylabel("Number of People")
-        plt.legend(["Uninfected", "Infected", "Exposed", "Recovered"])
+        plt.legend(["Suceptible", "Infected", "Exposed", "Recovered"])
         plt.ylim(0,self.num_agents)
         plt.xlim(0,self.iterations)
 

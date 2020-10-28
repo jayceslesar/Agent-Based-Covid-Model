@@ -25,8 +25,6 @@ class Space:
         self.swapped_agents = []
         self.num_agents = [i for i in range(rows*cols)]  # total number of agents
         self.initial_infected = random.choice(self.num_agents)  # sets one agent to start infected
-        self.INFECTION_THRESHOLD = 0.3  # for math later
-        self.INCUBATION_PERIOD = 3
         self.corners = True
         self.agents = []
         self.output = output
@@ -249,6 +247,7 @@ class Space:
                 self.grid[i][j] = curr_agent
 
         # reset counts for output
+        self.suceptible_count = 0
         self.infected_count = 0
         self.uninfected_count = 0
         self.exposed_count = 0
@@ -260,15 +259,15 @@ class Space:
                 curr_agent = self.grid[i][j]
                 if curr_agent.infected:
                     self.infected_count += 1
-                if not curr_agent.infected:
-                    self.uninfected_count += 1
+                if curr_agent.untouched:
+                    self.suceptible_count += 1
                 if curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered:
                     self.exposed_count += 1
                 if curr_agent.recovered:
                     self.recovered_count += 1
 
         #update data
-        self.data.update_graph(self.uninfected_count, self.infected_count, self.exposed_count, self.recovered_count, 0)
+        self.data.update_graph(self.suceptible_count, self.infected_count, self.exposed_count, self.recovered_count, 0)
 
         # swap
         if self.recovered_count > 0:
@@ -280,7 +279,7 @@ class Space:
         print("step " + str(self.steps_taken) + "/" + str(self.iterations))
         if self.output:
             print("step " + str(self.steps_taken))
-            print("uninfected:", (self.uninfected_count - self.recovered_count))
+            print("suceptible:", self.suceptible_count)
             print("infected:", self.infected_count)
             print("exposed:", self.exposed_count)
             print("recovered:", self.recovered_count)

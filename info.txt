@@ -77,3 +77,29 @@ TODO 10/21
 
     TODO:: CPP implementation ?
 
+
+TODO 10/28
+    realism -> moving space class variables to agent class variables
+
+    Noise in time to be infected from Exposure
+
+    R0 -> how many people each infected person infects at a timestamp
+
+    Make an infection tree potentially -> timeline of transmission
+
+    For each step:
+        histogram of number of people who were infectious
+        and how many people they infected
+
+    Change uninfected to suceptible
+
+    Play with timestamps of:
+        decreasing radius
+        incubation
+        infectious length
+
+    https://www.nature.com/articles/s41591-020-0869-5
+
+
+
+
