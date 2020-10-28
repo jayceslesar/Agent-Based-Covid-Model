@@ -2,7 +2,7 @@ import Agent
 from copy import deepcopy
 import random
 import Graph
-import SocialNetwork
+import SocialNetwork as sn
 
 
 class Space:
@@ -32,6 +32,7 @@ class Space:
         self.output = output
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
         self.social_network = None
+        self.initial_agent = None
 
         rows = []
         n = 0
@@ -39,11 +40,14 @@ class Space:
             col = []
             for j in range(self.cols):
                 agent = Agent.Agent(n, i, j)
+                string_name = "agent " + str(i) + str(j)
+                agent.name = string_name
                 agent.neighborhood_size = random.uniform(0.5, 3)
                 if n == self.initial_infected:
                     agent.infected = True
                     col.append(agent)
                     self.agents.append(agent)
+                    self.initial_agent = agent
                 else:
                     col.append(agent)
                     self.agents.append(agent)
@@ -205,9 +209,12 @@ class Space:
                         # check against each agent
                         if agent.infected and not agent.recovered:
                             if agent.neighborhood_size >= self.distance_dict[agent.number][curr_agent.number]:
-                                curr_agent.exposed = True
-                                curr_agent.untouched = False
-                                agent.num_infected += 1
+                                if curr_agent.name != agent.name and not curr_agent.exposed and not curr_agent.infected:
+                                    curr_agent.agent_who_exposed_me = agent
+                                    print(curr_agent.name + " got exposed by " + curr_agent.agent_who_exposed_me.name)
+                                    curr_agent.exposed = True
+                                    curr_agent.untouched = False
+                                    agent.num_infected += 1
                         new_grid[k][l] = curr_agent
         self.grid = new_grid
 
@@ -229,8 +236,12 @@ class Space:
                     curr_agent.days_infected += 1
                 if curr_agent.exposed:
                     curr_agent.days_exposed += 1
-                if curr_agent.days_exposed > self.INCUBATION_PERIOD:
+                if curr_agent.days_exposed > self.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
                     curr_agent.infected = True
+                    curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
+                    print(curr_agent.name + " got infected by " + curr_agent.agent_who_infected_me.name)
+                    curr_agent.agent_who_infected_me.total_infected += 1
+                    curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.exposed = False
                 if curr_agent.days_infected > curr_agent.INFECTED_LENGTH:
                     curr_agent.infected = False
@@ -251,7 +262,7 @@ class Space:
                     self.infected_count += 1
                 if not curr_agent.infected:
                     self.uninfected_count += 1
-                if curr_agent.exposed and not curr_agent.infected:
+                if curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered:
                     self.exposed_count += 1
                 if curr_agent.recovered:
                     self.recovered_count += 1
@@ -291,7 +302,7 @@ class Space:
 
         #create social network
         print("making social network...")
-        SocialNetwork(self.initial_agent, self.agents)
+        sn.SocialNetwork(self.initial_agent, self.agents)
         #Prints out Social network
         for key in self.social_network:
             self.social_network.tracer(key)
