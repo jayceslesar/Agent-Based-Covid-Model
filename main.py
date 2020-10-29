@@ -1,4 +1,13 @@
-# 10/15/2020
+"""
+Authors:
+---
+    Jayce Slesar
+    Brandon Lee
+
+Date:
+---
+    10/15/2020
+"""
 import pygame, sys
 from pygame.locals import *
 import Space
