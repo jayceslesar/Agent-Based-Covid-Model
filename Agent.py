@@ -1,5 +1,4 @@
 import random
-import numpy as np
 
 
 class Agent:
@@ -31,7 +30,7 @@ class Agent:
 
         # random attributes:
         # the age of an agent
-        self.age = random.uniform(1, 70)
+        self.age = random.randint(1, 70)
 
         #  how big of a radius can they infect others in
         self.neighborhood_size = random.uniform(0.5, 3)
