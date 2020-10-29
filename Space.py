@@ -1,6 +1,7 @@
 import Agent
 from copy import deepcopy
-import random
+import random as rd
+import numpy as np
 import Graph
 import SocialNetwork as sn
 
@@ -22,15 +23,28 @@ class Space:
         self.steps_taken = 0  # tracker to tell what step the model is currently on
         self.iterations = num_steps
         self.log = []  # log to keep track of each time the grid/space is changed
-        self.swapped_agents = []
+        self.swapped_agents = []  # keeps track of swapped agents so no agents are double swapped
         self.num_agents = [i for i in range(rows*cols)]  # total number of agents
-        self.initial_infected = random.choice(self.num_agents)  # sets one agent to start infected
-        self.corners = True
+        self.initial_infected = rd.choice(self.num_agents)  # sets one agent to start infected
         self.agents = []
         self.output = output
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
+
+
+        # distributions to pick from when building each agent below
+        # TODO:: needs a much heavier tail mathematically but it works
+        self.INCUBATION_PERIOD_DISTRIBUTION = list(np.absolute(np.around(np.random.normal(loc=2, scale=1.5, size=(rows*cols))).astype(int)))
+        # infective length
+        self.INFECTIVE_LENGTH_DISTRUBUTION = list(np.around(np.random.normal(loc=10.5, scale=3.5, size=(rows*cols))).astype(int))
+        # choose agents to have a pre existing health condition float
+        pre_exist_agents = deepcopy(self.num_agents)
+        rd.shuffle(pre_exist_agents)
+        self.AGENT_NUMBERS_WITH_PRE_EXISTING_CONDITIONS = deepcopy(pre_exist_agents)[:int(rd.uniform(40, 60))]
+
+        # initialized later in program
         self.social_network = None
         self.initial_agent = None
+
 
         rows = []
         n = 0
@@ -38,9 +52,10 @@ class Space:
             col = []
             for j in range(self.cols):
                 agent = Agent.Agent(n, i, j)
-                string_name = "agent " + str(i) + str(j)
-                agent.name = string_name
-                agent.neighborhood_size = random.uniform(0.5, 3)
+                agent.INCUBATION_PERIOD = self.INCUBATION_PERIOD_DISTRIBUTION.pop(rd.randint(0, len(self.INCUBATION_PERIOD_DISTRIBUTION) - 1))
+                agent.INFECTIVE_LENGTH = self.INFECTIVE_LENGTH_DISTRUBUTION.pop(rd.randint(0, len(self.INFECTIVE_LENGTH_DISTRUBUTION) - 1))
+                if n in self.AGENT_NUMBERS_WITH_PRE_EXISTING_CONDITIONS:
+                    agent.pre_existing_float = rd.uniform(0, 1)
                 if n == self.initial_infected:
                     agent.infected = True
                     col.append(agent)
@@ -106,11 +121,11 @@ class Space:
         O(1)
         """
         # find one of the agents to swap
-        init_swap_row = random.randint(0, self.rows - 1)
-        init_swap_col = random.randint(0, self.cols - 1)
+        init_swap_row = rd.randint(0, self.rows - 1)
+        init_swap_col = rd.randint(0, self.cols - 1)
         # find the other agent to swap
-        to_swap_row = random.randint(0, self.rows - 1)
-        to_swap_col = random.randint(0, self.cols - 1)
+        to_swap_row = rd.randint(0, self.rows - 1)
+        to_swap_col = rd.randint(0, self.cols - 1)
         # make copies of objects
         init_agent = self.grid[init_swap_row][init_swap_col]
         to_agent = self.grid[to_swap_row][to_swap_col]
@@ -168,7 +183,7 @@ class Space:
         if len(untouched_agents) > 0:
             for recovered_agent in safe_spots:
                 # if we haven't swapped this agent yet
-                random_index = random.randint(0, len(untouched_agents) - 1)
+                random_index = rd.randint(0, len(untouched_agents) - 1)
                 if recovered_agent not in self.swapped_agents and untouched_agents[random_index] not in self.swapped_agents:
                     # swap the recovered agent with a random untouched agent
                     self.grid[recovered_agent.row][recovered_agent.col] = untouched_agents[random_index]
@@ -196,7 +211,6 @@ class Space:
 
         O(n^2)
         """
-        # TODO:: change to i, j, k, l
         new_grid = deepcopy(self.grid)
         for i in range(self.rows):
             for j in range(self.cols):
@@ -207,7 +221,7 @@ class Space:
                         # check against each agent
                         if agent.infected and not agent.recovered:
                             if agent.neighborhood_size >= self.distance_dict[agent.number][curr_agent.number]:
-                                if curr_agent.name != agent.name and not curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered:
+                                if curr_agent.number != agent.number and not curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered:
                                     curr_agent.agent_who_exposed_me = agent
                                     # print(curr_agent.name + " got exposed by " + curr_agent.agent_who_exposed_me.name)
                                     curr_agent.exposed = True
@@ -234,14 +248,14 @@ class Space:
                     curr_agent.days_infected += 1
                 if curr_agent.exposed:
                     curr_agent.days_exposed += 1
-                if curr_agent.days_exposed > self.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
+                if curr_agent.days_exposed > curr_agent.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
                     curr_agent.infected = True
                     curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
                     # (curr_agent.name + " got infected by " + curr_agent.agent_who_infected_me.name)
                     curr_agent.agent_who_infected_me.total_infected += 1
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.exposed = False
-                if curr_agent.days_infected > curr_agent.INFECTED_LENGTH:
+                if curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH:
                     curr_agent.infected = False
                     curr_agent.recovered = True
                 self.grid[i][j] = curr_agent
