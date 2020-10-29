@@ -29,6 +29,7 @@ class Space:
         self.agents = []
         self.output = output
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
+        self.curr_number_of_infections = 0  # current number of infections at each step
 
 
         # distributions to pick from when building each agent below
@@ -211,6 +212,7 @@ class Space:
 
         O(n^2)
         """
+        self.curr_number_of_infections = 0
         new_grid = deepcopy(self.grid)
         for i in range(self.rows):
             for j in range(self.cols):
@@ -227,6 +229,7 @@ class Space:
                                     curr_agent.exposed = True
                                     curr_agent.untouched = False
                                     agent.num_infected += 1
+                                    self.curr_number_of_infections += 1
                         new_grid[k][l] = curr_agent
         self.grid = new_grid
 
@@ -238,7 +241,6 @@ class Space:
         O(n)
         """
         self._neighborhood_infect_()
-
         # update based off of infections
         for i in range(self.rows):
             for j in range(self.cols):
@@ -280,6 +282,7 @@ class Space:
                 if curr_agent.recovered:
                     self.recovered_count += 1
 
+
         #update data
         self.data.update_graph(self.suceptible_count, self.infected_count, self.exposed_count, self.recovered_count, 0)
 
@@ -306,15 +309,16 @@ class Space:
         """
         runs the model until iteration cap
         """
-        print("starting grid")
         # print initial state
         if self.output:
+            print("starting grid")
             print(self.__str__())
         while self.steps_taken < self.iterations:
             self._step_()
 
         #create social network
-        print("making social network...")
+        if self.output:
+            print("making social network...")
         sn.SocialNetwork(self.initial_agent, self.agents)
         #Prints out Social network
         for key in self.social_network:
@@ -330,7 +334,8 @@ class Space:
                 if (curr_agent.infected or curr_agent.recovered):
                     total_spreaders += 1
 
-        r0 = total_infected/total_spreaders
-        print("Total infected was " + str(total_infected))
-        print("Total spreaders were " + str(total_spreaders))
-        print("The R0 for this run was " + str(r0))
+        # r0 = total_infected/total_spreaders
+        # if self.output:
+        #     print("Total infected was " + str(total_infected))
+        #     print("Total spreaders were " + str(total_spreaders))
+        #     print("The R0 for this run was " + str(r0))
