@@ -1,3 +1,7 @@
+import random
+import numpy as np
+
+
 class Agent:
     def __init__(self, number: int, row: int, col: int):
         """
@@ -11,27 +15,51 @@ class Agent:
         self.number = number
         self.row = row
         self.col = col
-        self.untouched = True  # used to track exposure and subsequently infection
-        self.infected = False  # used in step function
-        self.recovered = False  # for stat tracking
-        self.exposed = False  # for stat tracking
-        self.num_infected = 0  # for stat tracking
+
+        # tracking variables for run specific decisions
+        self.untouched = True
+        self.infected = False
+        self.recovered = False
+        self.exposed = False
+
+        # counter variables for run specific desicions
         self.days_exposed = 0  # for stat tracking
         self.days_infected = 0
-        self.INFECTED_LENGTH = random.uniform(7, 10)  # TODO:: guassian not uniform
-        self.INCUBATION_PERIOD = 3  # TODO:: random uniform 0-14 days // guassian 0 to 3 days with tail to 7
-        self.PROBABILITY_OF_INFECTION = 0.3  # for math later
-        self.infectiveness = None  # how likely to infect another
-        self.neighborhood_size = None  # how big of a radius can they infect others in
-        self.tested_since_last_step = None
-        self.lag_from_contact_tracing = None
-        self.currently_quarantined = False
 
+        # stats for network
+        self.num_infected = 0  # for stat tracking
+
+        # random attributes:
+        # the age of an agent
+        self.age = random.uniform(1, 70)
+
+        #  how big of a radius can they infect others in
+        self.neighborhood_size = random.uniform(0.5, 3)
+
+        # All of these are initialized here but set in Space.py for speed
+        # the number of steps the agent remains infective for
+        self.INFECTIVE_LENGTH = None
+
+        # the number of steps the agent takes from initial exposure to being infective
+        self.INCUBATION_PERIOD = None  # TODO:: guassian 0 to 3 days with tail to 7
+
+        # pre-existing condition float
+        self.pre_existing_float = None
+
+        # random probability that someone will be infected :: UNIMPLEMENTED
+        self.PROBABILITY_OF_INFECTION = None  # for math later
+        self.infectiveness = None  # how likely to infect another
+
+        # network specific class variables
         self.agent_who_exposed_me = None
         self.agent_who_infected_me = None
         self.agents_infected = []
         self.total_infected = 0
-        self.name = ""
+
+        # UNIMPLEMENTED
+        self.tested_since_last_step = None
+        self.lag_from_contact_tracing = None
+        self.currently_quarantined = False
 
 
     def __str__(self):
