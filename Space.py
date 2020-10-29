@@ -32,7 +32,7 @@ class Space:
 
 
         # distributions to pick from when building each agent below
-        # TODO:: needs a much heavier tail mathematically but it works
+        # TODO:: needs a much heavier tail mathematically but it works (normal at mean 2 and sd of 1.5, but take the absolute value and it works out nicely)
         self.INCUBATION_PERIOD_DISTRIBUTION = list(np.absolute(np.around(np.random.normal(loc=2, scale=1.5, size=(rows*cols))).astype(int)))
         # infective length
         self.INFECTIVE_LENGTH_DISTRUBUTION = list(np.around(np.random.normal(loc=10.5, scale=3.5, size=(rows*cols))).astype(int))
