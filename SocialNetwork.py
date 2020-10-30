@@ -33,12 +33,12 @@ class SocialNetwork:
         if len(self.network[agent]) != 0:
             string_out = "It was "
             for agent_c in self.network[agent]:
-                string_out += agent_c.number
+                string_out += str(agent_c.number)
                 string_out += " who infected "
-            string_out += agent.number
+            string_out += str(agent.number)
         elif agent.number == self.initial_agent.number:
-            string_out = "I, " + agent.number + ", was patient zero"
+            string_out = "I, " + str(agent.number) + ", was patient zero"
         else:
-            string_out = "I, " + agent.number + ", was not infected"
+            string_out = "I, " + str(agent.number) + ", was not infected"
 
         print(string_out)

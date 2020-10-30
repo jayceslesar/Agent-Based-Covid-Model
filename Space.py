@@ -75,6 +75,10 @@ class Space:
         self.distance_dict = self.calc_distance_dict()
 
 
+        #Probability Distributions
+
+
+
     def calc_distance_dict(self) -> dict:
         """
         creates the distance dictionary for a neighborhood run

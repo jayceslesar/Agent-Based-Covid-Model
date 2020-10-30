@@ -19,9 +19,9 @@ from multiprocessing import Process
 
 
 BLACK = (0, 0, 0)
-rows = 30
-cols = 30
-steps = 50
+rows = 10
+cols = 10
+steps = 20
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
 height_per_block = WINDOW_HEIGHT // rows
