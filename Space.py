@@ -181,6 +181,7 @@ class Space:
                     if safe_spot:
                         safe_spots.append(curr_agent)
         # make the swaps
+        # TODO:: refactor untouched_agents[random_index] with pop
         if len(untouched_agents) > 0:
             for recovered_agent in safe_spots:
                 # if we haven't swapped this agent yet
