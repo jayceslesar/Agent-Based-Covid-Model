@@ -43,7 +43,10 @@ class Agent:
         self.INCUBATION_PERIOD = None  # TODO:: guassian 0 to 3 days with tail to 7
 
         # pre-existing condition float
-        self.pre_existing_float = None
+        if random.randint(0, 1):
+            self.pre_existing_float = random.uniform(0, 1)
+        else:
+            self.pre_existing_float = 0
 
         # random probability that someone will be infected :: UNIMPLEMENTED
         self.PROBABILITY_OF_INFECTION = None  # for math later

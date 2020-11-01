@@ -38,9 +38,6 @@ class Space:
         # infective length
         self.INFECTIVE_LENGTH_DISTRUBUTION = list(np.around(np.random.normal(loc=10.5, scale=3.5, size=(rows*cols))).astype(int))
         # choose agents to have a pre existing health condition float
-        pre_exist_agents = deepcopy(self.num_agents)
-        rd.shuffle(pre_exist_agents)
-        self.AGENT_NUMBERS_WITH_PRE_EXISTING_CONDITIONS = deepcopy(pre_exist_agents)[:int(rd.uniform(40, 60))]
 
         # initialized later in program
         self.social_network = None
@@ -55,8 +52,6 @@ class Space:
                 agent = Agent.Agent(n, i, j)
                 agent.INCUBATION_PERIOD = self.INCUBATION_PERIOD_DISTRIBUTION.pop(rd.randint(0, len(self.INCUBATION_PERIOD_DISTRIBUTION) - 1))
                 agent.INFECTIVE_LENGTH = self.INFECTIVE_LENGTH_DISTRUBUTION.pop(rd.randint(0, len(self.INFECTIVE_LENGTH_DISTRUBUTION) - 1))
-                if n in self.AGENT_NUMBERS_WITH_PRE_EXISTING_CONDITIONS:
-                    agent.pre_existing_float = rd.uniform(0, 1)
                 if n == self.initial_infected:
                     agent.infected = True
                     col.append(agent)
