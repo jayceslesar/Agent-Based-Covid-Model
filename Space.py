@@ -159,17 +159,14 @@ class Space:
         """
         safe_spots = []
         untouched_agents = []
-        for i in range(self.rows):
-            for j in range(self.cols):
-                curr_agent = self.grid[i][j]
-                # find all untouched agents
-                if curr_agent.untouched:
-                    untouched_agents.append(curr_agent)
         # find all safe spots -> a point on the grid such that no neighborhoods of currently infected or exposed agents reach
         # must be a recovered spot so that the recovered induvidual can swap with them
         for i in range(self.rows):
             for j in range(self.cols):
                 curr_agent = self.grid[i][j]
+                if curr_agent.untouched:
+                    untouched_agents.append(curr_agent)
+                    continue
                 if curr_agent.recovered:
                     # assume it is a safe spot
                     safe_spot = True
