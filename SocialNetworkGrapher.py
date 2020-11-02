@@ -31,6 +31,8 @@ class SocialNetworkGrapher:
         # z and y position of the agent is based on the agent number and the number of agents
         # z and y positions of an agent are stored in a dictionary
 
+        # approximates how many people should be in a row by taking the square root of the number of people
+        # this will serve as the "max_row_num"
         max_row_num = int(math.sqrt(len(agents)))
         x_array = []
         y_array = []
@@ -43,13 +45,19 @@ class SocialNetworkGrapher:
                 x_array.append(iteration)
 
         # fills y and z arrays with relevant values for agent positions
+        # fills each row up until the max is reached and then starts to fill
+        # the row above it until the max is reached and so on
         for agent in agents:
             result = divmod(agent.number,max_row_num)
             z_array.append(result[0])
             y_array.append(result[1])
             self.agent_position[agent] = result
+
+        # makes a shallow copy of array to extend
         copy_z = z_array.copy()
         copy_y = y_array.copy()
+
+        #makes it so that there is the same z and y coordinates for every iteration
         for i in range(0, len(net_array) - 1):
             z_array.extend(copy_z)
             y_array.extend(copy_y)
@@ -76,6 +84,7 @@ class SocialNetworkGrapher:
                     z_victim = [z_pos, victim_coor[0]]
                     self.ax.plot3D(x_victim, y_victim, z_victim, 'red')
 
+        # can comment the below line out (just shows the green dots)
         self.ax.scatter(x_array, y_array, z_array, c='g', marker='o')
         self.ax.set_xlabel('Iteration Number')
         plt.show()
