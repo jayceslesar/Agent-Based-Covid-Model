@@ -186,15 +186,16 @@ class Space:
         if len(untouched_agents) > 0:
             for recovered_agent in safe_spots:
                 # if we haven't swapped this agent yet
-                random_index = rd.randint(0, len(untouched_agents) - 1)
-                if recovered_agent not in self.swapped_agents and untouched_agents[random_index] not in self.swapped_agents:
-                    # swap the recovered agent with a random untouched agent
-                    self.grid[recovered_agent.row][recovered_agent.col] = untouched_agents[random_index]
-                    self.grid[untouched_agents[random_index].row][untouched_agents[random_index].col] = recovered_agent
-                    # keep track of what agents are swapped for consistency
-                    self.swapped_agents.append(untouched_agents[random_index])
-                    self.swapped_agents.append(recovered_agent)
-                    del untouched_agents[random_index]
+                if len(untouched_agents) > 0:
+                    random_index = rd.randint(0, len(untouched_agents) - 1)
+                    if recovered_agent not in self.swapped_agents and untouched_agents[random_index] not in self.swapped_agents:
+                        # swap the recovered agent with a random untouched agent
+                        self.grid[recovered_agent.row][recovered_agent.col] = untouched_agents[random_index]
+                        self.grid[untouched_agents[random_index].row][untouched_agents[random_index].col] = recovered_agent
+                        # keep track of what agents are swapped for consistency
+                        self.swapped_agents.append(untouched_agents[random_index])
+                        self.swapped_agents.append(recovered_agent)
+                        del untouched_agents[random_index]
         # update distances
         self.distance_dict = self.calc_distance_dict()
 
