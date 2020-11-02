@@ -43,6 +43,9 @@ class Space:
         self.social_network = None
         self.initial_agent = None
 
+        # social network tracker
+        self.social_network_log = []
+
 
         rows = []
         n = 0
@@ -283,6 +286,10 @@ class Space:
         #update data
         self.data.update_graph(self.suceptible_count, self.infected_count, self.exposed_count, self.recovered_count, 0)
 
+        # update social_network_log
+        entry = sn.SocialNetwork(self.initial_agent, self.agents)
+        self.social_network_log.append(entry)
+
         # swap
         if self.recovered_count > 0:
             self._specifc_swap_()
@@ -316,9 +323,9 @@ class Space:
         #create social network
         if self.output:
             print("making social network...")
-        sn.SocialNetwork(self.initial_agent, self.agents)
+        self.social_network = sn.SocialNetwork(self.initial_agent, self.agents)
         #Prints out Social network
-        for key in self.social_network:
+        for key in self.social_network.network:
             self.social_network.tracer(key)
 
         #Finds R0

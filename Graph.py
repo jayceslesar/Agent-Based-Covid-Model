@@ -82,6 +82,7 @@ class Grapher:
 
 
     def draw_graph(self):
+        # interval is the delay between frames
         ani = animation.FuncAnimation(self.fig, self.animate, interval = 20)
         plt.show()
 

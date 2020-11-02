@@ -16,6 +16,7 @@ import Graph
 import Space
 import SocialNetwork as sn
 from multiprocessing import Process
+import SocialNetworkGrapher as sng
 
 
 BLACK = (0, 0, 0)
@@ -71,6 +72,10 @@ def viz():
     print("Total infected was " + str(total_infected))
     print("Total spreaders were " + str(total_spreaders))
     print("The R0 for this run was " + str(r0))
+
+    sn_grapher = sng.SocialNetworkGrapher()
+    sn_grapher.print_graph(m.social_network_log, m.agents)
+
 
 def draw(grid):
     for x, i in enumerate(range(rows)):
