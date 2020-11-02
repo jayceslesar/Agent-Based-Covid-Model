@@ -21,6 +21,7 @@ class SocialNetworkGrapher:
         self.agent_position = {}
 
     def find_agent(self, agent):
+        # returns the (z,y) coordinates of the agent
         return self.agent_position[agent]
 
 
