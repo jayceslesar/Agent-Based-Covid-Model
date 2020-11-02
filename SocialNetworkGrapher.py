@@ -36,7 +36,7 @@ class SocialNetworkGrapher:
         z_array = []
 
         # fills x_array with iteration values
-        for i in range (0,len(net_array) - 1):
+        for i in range (0,len(net_array)):
             iteration = i + 1
             for c in range (0,len(agents)):
                 x_array.append(iteration)
@@ -47,10 +47,11 @@ class SocialNetworkGrapher:
             z_array.append(result[0])
             y_array.append(result[1])
             self.agent_position[agent] = result
-
-        for i in range(0, len(net_array) - 2):
-            z_array.extend(z_array)
-            y_array.extend(y_array)
+        copy_z = z_array.copy()
+        copy_y = y_array.copy()
+        for i in range(0, len(net_array) - 1):
+            z_array.extend(copy_z)
+            y_array.extend(copy_y)
 
         testx = [1,1,1]
         testy = [1,1,1]
@@ -61,3 +62,6 @@ class SocialNetworkGrapher:
         ydata = [1, 2, 3, 4, 5, 6, 7]
         self.ax.scatter(x_array, y_array, z_array, c='r', marker='o');
         plt.show()
+        print(len(x_array))
+        print(len(y_array))
+        print(len(z_array))
