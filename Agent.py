@@ -56,7 +56,9 @@ class Agent:
         self.agent_who_exposed_me = None
         self.agent_who_infected_me = None
         self.agents_infected = []
+        self.agents_infected_iterations = []
         self.total_infected = 0
+        self.iteration_infected = None
 
         # UNIMPLEMENTED
         self.tested_since_last_step = None

@@ -53,15 +53,29 @@ class SocialNetworkGrapher:
             z_array.extend(copy_z)
             y_array.extend(copy_y)
 
-        testx = [1,1,1]
-        testy = [1,1,1]
-        testz = [1,1,1]
+        for agent in agents:
+            if agent.iteration_infected is not None:
 
-        zdata = [1, 2, 3, 4, 5, 6, 7]
-        xdata = [1, 2, 3, 4, 5, 6, 7]
-        ydata = [1, 2, 3, 4, 5, 6, 7]
-        self.ax.scatter(x_array, y_array, z_array, c='r', marker='o');
+                # draws a red line from step infected to step recovered
+                x_infected_len = [agent.iteration_infected,agent.iteration_infected + agent.days_infected]
+                position = self.find_agent(agent)
+                y_pos = position[1]
+                z_pos = position[0]
+                y_infected_len = [y_pos, y_pos]
+                z_infected_len = [z_pos, z_pos]
+                self.ax.plot3D(x_infected_len, y_infected_len, z_infected_len, 'red')
+
+                # draws a line from infected agent to the victims they infected at relevant steps
+                for i_tuple in agent.agents_infected_iterations:
+                    victim = i_tuple[0]
+                    step = i_tuple[1]
+                    victim_coor = self.find_agent(victim)
+                    x_victim = [step - 1, step]
+                    y_victim = [y_pos, victim_coor[1]]
+                    z_victim = [z_pos, victim_coor[0]]
+                    self.ax.plot3D(x_victim, y_victim, z_victim, 'red')
+
+        self.ax.scatter(x_array, y_array, z_array, c='g', marker='o')
         plt.show()
-        print(len(x_array))
-        print(len(y_array))
-        print(len(z_array))
+
+

@@ -30,6 +30,7 @@ class Space:
         self.output = output
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
         self.curr_number_of_infections = 0  # current number of infections at each step
+        self.curr_iterations = 0
 
 
         # distributions to pick from when building each agent below
@@ -60,6 +61,7 @@ class Space:
                     col.append(agent)
                     self.agents.append(agent)
                     self.initial_agent = agent
+                    agent.iteration_infected = 0
                 else:
                     col.append(agent)
                     self.agents.append(agent)
@@ -240,6 +242,7 @@ class Space:
 
         O(n)
         """
+        self.curr_iterations += 1
         self._neighborhood_infect_()
         # update based off of infections
         for i in range(self.rows):
@@ -252,10 +255,12 @@ class Space:
                     curr_agent.days_exposed += 1
                 if curr_agent.days_exposed > curr_agent.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
                     curr_agent.infected = True
+                    curr_agent.iteration_infected = self.curr_iterations
                     curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
                     # (curr_agent.name + " got infected by " + curr_agent.agent_who_infected_me.name)
                     curr_agent.agent_who_infected_me.total_infected += 1
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
+                    curr_agent.agent_who_infected_me.agents_infected_iterations.append((curr_agent, self.curr_iterations))
                     curr_agent.exposed = False
                 if curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH:
                     curr_agent.infected = False
