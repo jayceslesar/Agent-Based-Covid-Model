@@ -9,7 +9,6 @@ import matplotlib.animation as animation
 from matplotlib import style
 
 
-
 class SocialNetworkGrapher:
     def __init__(self):
         self.xline = []
@@ -23,7 +22,6 @@ class SocialNetworkGrapher:
     def find_agent(self, agent):
         # returns the (z,y) coordinates of the agent
         return self.agent_position[agent]
-
 
     def print_graph(self, net_array, agents):
         # initial outline of graph
@@ -47,6 +45,10 @@ class SocialNetworkGrapher:
         # fills y and z arrays with relevant values for agent positions
         # fills each row up until the max is reached and then starts to fill
         # the row above it until the max is reached and so on
+        # so agent 0 will be located at (0,0) for (z,y) and will fill to the right and then upwards
+        # note: divmod returns (quotient, remainder)
+        # also stores the z and y location of each agent on the graph in a dictionary
+
         for agent in agents:
             result = divmod(agent.number,max_row_num)
             z_array.append(result[0])
@@ -57,7 +59,7 @@ class SocialNetworkGrapher:
         copy_z = z_array.copy()
         copy_y = y_array.copy()
 
-        #makes it so that there is the same z and y coordinates for every iteration
+        # makes it so that there is the same z and y coordinates for every iteration
         for i in range(0, len(net_array) - 1):
             z_array.extend(copy_z)
             y_array.extend(copy_y)
