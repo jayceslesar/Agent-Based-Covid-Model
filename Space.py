@@ -35,7 +35,7 @@ class Space:
 
         # distributions to pick from when building each agent below
         # TODO:: needs a much heavier tail mathematically but it works (normal at mean 2 and sd of 1.5, but take the absolute value and it works out nicely)
-        self.INCUBATION_PERIOD_DISTRIBUTION = list(np.absolute(np.around(np.random.normal(loc=2, scale=1.5, size=(rows*cols))).astype(int)))
+        self.INCUBATION_PERIOD_DISTRIBUTION = list(np.absolute(np.around(np.random.normal(loc=3, scale=1.5, size=(rows*cols))).astype(int)))
         # infective length
         self.INFECTIVE_LENGTH_DISTRUBUTION = list(np.around(np.random.normal(loc=10.5, scale=3.5, size=(rows*cols))).astype(int))
         # choose agents to have a pre existing health condition float
@@ -182,18 +182,18 @@ class Space:
                     if safe_spot:
                         safe_spots.append(curr_agent)
         # make the swaps
-        # TODO:: refactor untouched_agents[random_index] with pop
         if len(untouched_agents) > 0:
             for recovered_agent in safe_spots:
                 # if we haven't swapped this agent yet
                 if len(untouched_agents) > 0:
                     random_index = rd.randint(0, len(untouched_agents) - 1)
-                    if recovered_agent not in self.swapped_agents and untouched_agents[random_index] not in self.swapped_agents:
+                    curr_untouched_agent = untouched_agents[random_index]
+                    if recovered_agent not in self.swapped_agents and curr_untouched_agent not in self.swapped_agents:
                         # swap the recovered agent with a random untouched agent
-                        self.grid[recovered_agent.row][recovered_agent.col] = untouched_agents[random_index]
-                        self.grid[untouched_agents[random_index].row][untouched_agents[random_index].col] = recovered_agent
+                        self.grid[recovered_agent.row][recovered_agent.col] = curr_untouched_agent
+                        self.grid[curr_untouched_agent.row][curr_untouched_agent.col] = recovered_agent
                         # keep track of what agents are swapped for consistency
-                        self.swapped_agents.append(untouched_agents[random_index])
+                        self.swapped_agents.append(curr_untouched_agent)
                         self.swapped_agents.append(recovered_agent)
                         del untouched_agents[random_index]
         # update distances
