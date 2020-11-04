@@ -21,6 +21,7 @@ class Space:
         self.rows = rows
         self.cols = cols
         self.steps_taken = 0  # tracker to tell what step the model is currently on
+        self.curr_number_of_infections = 0
         self.iterations = num_steps
         self.log = []  # log to keep track of each time the grid/space is changed
         self.swapped_agents = []  # keeps track of swapped agents so no agents are double swapped
@@ -31,7 +32,6 @@ class Space:
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
         self.curr_number_of_infections = 0  # current number of infections at each step
         self.curr_iterations = 0
-
 
         # distributions to pick from when building each agent below
         # TODO:: needs a much heavier tail mathematically but it works (normal at mean 2 and sd of 1.5, but take the absolute value and it works out nicely)
@@ -46,7 +46,6 @@ class Space:
 
         # social network tracker
         self.social_network_log = []
-
 
         rows = []
         n = 0
@@ -73,10 +72,6 @@ class Space:
         self.log.append(self.grid)
         # build a distances dict for distances with neighborhoods
         self.distance_dict = self.calc_distance_dict()
-
-
-        #Probability Distributions
-
 
 
     def calc_distance_dict(self) -> dict:
@@ -215,7 +210,6 @@ class Space:
 
         O(n^2)
         """
-        self.curr_number_of_infections = 0
         new_grid = deepcopy(self.grid)
         for i in range(self.rows):
             for j in range(self.cols):
@@ -243,6 +237,8 @@ class Space:
 
         O(n)
         """
+        # reset current number of infections
+        self.curr_number_of_infections = 0
         self.curr_iterations += 1
         self._neighborhood_infect_()
         # update based off of infections
