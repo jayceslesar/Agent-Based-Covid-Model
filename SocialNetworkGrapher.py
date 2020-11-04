@@ -87,7 +87,7 @@ class SocialNetworkGrapher:
                     self.ax.plot3D(x_victim, y_victim, z_victim, 'red')
 
         # can comment the below line out (just shows the green dots)
-        self.ax.scatter(x_array, y_array, z_array, c='g', marker='o')
+        # self.ax.scatter(x_array, y_array, z_array, c='g', marker='o')
         self.ax.set_xlabel('Iteration Number')
         plt.show()
 
