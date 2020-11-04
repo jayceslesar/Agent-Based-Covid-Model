@@ -5,9 +5,13 @@ import numpy as np
 import Graph
 import SocialNetwork as sn
 
+rd.seed(42)
+np.random.seed(42)
+# TODO:: random seeding -> get same seeds might need to replace random with np.random (?)
+
 
 class Space:
-    def __init__(self, rows: int, cols: int, num_steps: int, output: bool):
+    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str):
         """
         Space constructor
 
@@ -32,6 +36,7 @@ class Space:
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
         self.curr_number_of_infections = 0  # current number of infections at each step
         self.curr_iterations = 0
+        self.swap_type = swap_type
 
         # distributions to pick from when building each agent below
         # TODO:: needs a much heavier tail mathematically but it works (normal at mean 2 and sd of 1.5, but take the absolute value and it works out nicely)
@@ -121,11 +126,11 @@ class Space:
         O(1)
         """
         # find one of the agents to swap
-        init_swap_row = rd.randint(0, self.rows - 1)
-        init_swap_col = rd.randint(0, self.cols - 1)
+        init_swap_row = np.random.randint(0, self.rows - 1)
+        init_swap_col = np.random.randint(0, self.cols - 1)
         # find the other agent to swap
-        to_swap_row = rd.randint(0, self.rows - 1)
-        to_swap_col = rd.randint(0, self.cols - 1)
+        to_swap_row = np.random.randint(0, self.rows - 1)
+        to_swap_col = np.random.randint(0, self.cols - 1)
         # make copies of objects
         init_agent = self.grid[init_swap_row][init_swap_col]
         to_agent = self.grid[to_swap_row][to_swap_col]
@@ -134,10 +139,9 @@ class Space:
         self.grid[to_swap_row][to_swap_col] = init_agent
 
         # update distances dict
-        if not self.adjacency:
-            self.distance_dict = self.calc_distance_dict()
-            if self.output:
-                print("distances updated")
+        self.distance_dict = self.calc_distance_dict()
+        if self.output:
+            print("distances updated")
 
         # output
         if self.output:
@@ -145,7 +149,7 @@ class Space:
                 " with agent number " + str(self.grid[to_swap_row][to_swap_col].number))
 
 
-    def _specifc_swap_(self):
+    def _specific_swap_(self):
         """
         Finds an agent who has yet to be infected and an agent who has recovered and swaps them
         in hopes to reduce or remove the chances that the yet to be infected agent gets infected
@@ -195,6 +199,11 @@ class Space:
         self.distance_dict = self.calc_distance_dict()
 
 
+    def _smart_specific_swap_(self):
+        """
+        same as above but creates bubbles of recovered people where the inside is also safe
+        """
+        pass
     def __str__(self):
         out = ""
         for row in self.grid:
@@ -294,7 +303,12 @@ class Space:
 
         # swap
         if self.recovered_count > 0:
-            self._specifc_swap_()
+            if self.swap_type == 'random':
+                self._random_swap_()
+            elif self.swap_type == 'specific':
+                self._specific_swap_()
+            elif self.swap_type == 'smart':
+                self._smart_specific_swap_()
 
         # step complete
         self.steps_taken += 1
