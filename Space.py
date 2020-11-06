@@ -5,13 +5,11 @@ import numpy as np
 import Graph
 import SocialNetwork as sn
 
-rd.seed(42)
-np.random.seed(42)
-# TODO:: random seeding -> get same seeds might need to replace random with np.random (?)
-
-
+# TODO:: add a daily infections list to add the number of new infections each step and fix run condtions to say to step while there is at least 1 recovered person
 class Space:
-    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str):
+    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int):
+        rd.seed(seed)
+        np.random.seed(seed)
         """
         Space constructor
 
@@ -204,6 +202,8 @@ class Space:
         same as above but creates bubbles of recovered people where the inside is also safe
         """
         pass
+
+
     def __str__(self):
         out = ""
         for row in self.grid:
