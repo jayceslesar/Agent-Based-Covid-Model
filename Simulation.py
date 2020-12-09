@@ -9,6 +9,7 @@ Date:
     10/15/2020
 """
 import pygame, sys
+import matplotlib.pyplot as plt
 from pygame.locals import *
 import Space
 import time
@@ -19,7 +20,7 @@ from multiprocessing import Process
 import SocialNetworkGrapher as sng
 
 class Simulation:
-    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int, file_name: str):
+    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int, file_name: str, fig: plt.figure, pos_a: int, pos_b: int, pos_c: int):
         self.rows = rows
         self.cols = cols
         self.steps = num_steps
@@ -29,6 +30,10 @@ class Simulation:
         self.width_per_block = self.WINDOW_WIDTH // cols
         self.swap_type = swap_type
         self.file_name = file_name
+        self.fig = fig
+        self.pos_a = pos_a
+        self.pos_b = pos_b
+        self.pos_c = pos_c
 
         self.output = output
         self.m = Space.Space(self.rows, self.cols, self.steps, self.output, self.swap_type, seed)
@@ -42,7 +47,8 @@ class Simulation:
         # SCREEN.fill(BLACK)
 
         while self.m.steps_taken < self.m.iterations:
-            self.m._step_()
+            model = self.m
+            model._step_()
             # self.draw(self.m.grid)
         #     for event in pygame.event.get():
         #         if event.type == pygame.QUIT:
@@ -76,7 +82,7 @@ class Simulation:
         print("The R0 for this run was " + str(r0))
 
         title = self.swap_type + " swap"
-        sn_grapher = sng.SocialNetworkGrapher(title)
+        sn_grapher = sng.SocialNetworkGrapher(title, self.fig, self.pos_a, self.pos_b, self.pos_c)
         sn_grapher.print_graph(self.m.social_network_log, self.m.agents)
 
 

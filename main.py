@@ -9,6 +9,7 @@ Date:
     10/15/2020
 """
 import pygame, sys
+from ipykernel.pickleutil import can
 from pygame.locals import *
 import Space
 import time
@@ -17,19 +18,22 @@ import Space
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
+import Simulation
+from mpl_toolkits.mplot3d.axes3d import Axes3D
+import matplotlib.pyplot as plt
 
 
 BLACK = (0, 0, 0)
 rows = 10
 cols = 10
-steps = 20
+steps = 80
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
 height_per_block = WINDOW_HEIGHT // rows
 width_per_block = WINDOW_WIDTH // cols
 
 output = False
-m = Space.Space(rows, cols, steps, output)
+m = Space.Space(rows, cols, steps, output, "random", 1)
 
 
 def viz():
@@ -73,7 +77,7 @@ def viz():
     print("Total spreaders were " + str(total_spreaders))
     print("The R0 for this run was " + str(r0))
 
-    sn_grapher = sng.SocialNetworkGrapher()
+    sn_grapher = sng.SocialNetworkGrapher("Title")
     sn_grapher.print_graph(m.social_network_log, m.agents)
 
 
@@ -84,9 +88,35 @@ def draw(grid):
                                height_per_block, height_per_block)
             pygame.draw.rect(SCREEN, grid[i][j].get_color(), rect)
 
+def sim():
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+    rows_s = 10
+    cols_s = 10
+    steps_s = 30
+    output_s = False
+    run1 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "specific", 1, "output1.csv", fig, 1, 2, 1)
+    # run2 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "specific", 1, "output2.csv")
+    run3 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "smart", 1, "output3.csv", fig, 1, 2, 2)
+    run1.run()
+    run3.run()
+    plt.show()
+    # p1 = Process(target=run1.run, args=())
+    # # p2 = Process(target=run2.run, args=())
+    # p3 = Process(target=run3.run, args=())
+    # p1.start()
+    # # p2.start()
+    # p3.start()
+    # p1.join()
+    # # p2.join()
+    # p3.join()
+
+
 if __name__ == "__main__":
-    p = Process(target=Graph.graph_process, args=("output.csv", rows*cols, steps))
-    p.start()
-    viz()
-    p.join()
+    # p = Process(target=Graph.graph_process, args=("output.csv", rows*cols, steps))
+    # p.start()
+    # viz()
+    # p.join()
+
+    # can comment out above and uncomment below to run 3 simultaneous simulations of different types
+    sim()
 

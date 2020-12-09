@@ -10,12 +10,12 @@ from matplotlib import style
 
 
 class SocialNetworkGrapher:
-    def __init__(self):
+    def __init__(self, title, fig, pos_a, pos_b, pos_c):
         self.xline = []
         self.yline = []
         self.zline = []
-        self.fig = plt.figure(figsize=(20, 20))
-        self.ax = plt.axes(projection='3d')
+        self.fig = fig
+        self.ax = fig.add_subplot(pos_a, pos_b, pos_c, projection='3d')
         # note: agent positions stored as (z,y)
         self.agent_position = {}
 
@@ -69,12 +69,17 @@ class SocialNetworkGrapher:
 
                 # draws a red line from step infected to step recovered
                 x_infected_len = [agent.iteration_infected,agent.iteration_infected + agent.days_infected]
+
                 position = self.find_agent(agent)
                 y_pos = position[1]
                 z_pos = position[0]
                 y_infected_len = [y_pos, y_pos]
                 z_infected_len = [z_pos, z_pos]
                 self.ax.plot3D(x_infected_len, y_infected_len, z_infected_len, 'red')
+                if agent.iteration_recovered is not None:
+                    self.ax.scatter([agent.iteration_recovered], [y_pos], [z_pos], c='g', marker='o')
+                else:
+                    self.ax.scatter([agent.iteration_infected + agent.days_infected], [y_pos], [z_pos], c='purple', marker='o')
 
                 # draws a line from infected agent to the victims they infected at relevant steps
                 for i_tuple in agent.agents_infected_iterations:
@@ -89,6 +94,6 @@ class SocialNetworkGrapher:
         # can comment the below line out (just shows the green dots)
         # self.ax.scatter(x_array, y_array, z_array, c='g', marker='o')
         self.ax.set_xlabel('Iteration Number')
-        plt.show()
+        # plt.show()
 
 

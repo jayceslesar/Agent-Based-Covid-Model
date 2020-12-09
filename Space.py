@@ -239,7 +239,6 @@ class Space:
                         new_grid[k][l] = curr_agent
         self.grid = new_grid
 
-
     def _step_(self):
         """
         runs an iteration of the model
@@ -268,9 +267,10 @@ class Space:
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.agent_who_infected_me.agents_infected_iterations.append((curr_agent, self.curr_iterations))
                     curr_agent.exposed = False
-                if curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH:
+                if curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH and curr_agent.infected:
                     curr_agent.infected = False
                     curr_agent.recovered = True
+                    curr_agent.iteration_recovered = self.curr_iterations
                 self.grid[i][j] = curr_agent
 
         # reset counts for output
