@@ -197,11 +197,57 @@ class Space:
         self.distance_dict = self.calc_distance_dict()
 
 
-    def _smart_specific_swap_(self):
+    def _smart_swap_(self):
         """
-        same as above but creates bubbles of recovered people where the inside is also safe
+        use distance matrix to find "next infections" and move the recovered agents there
+        do the same in the specific swap but keep a list of the n recovered_swapped_to_points
+        and the initial_infection_origin
+        find the m closest_exposed_or_infected person to the initial_infection_origin
+        swap all the n available recovered_swapped_to_points to the m closest_exposed_or_infected in relation
+        to the most recent swap -? put swaps together or try to bin them essentially
+        keep track of all swaps so that no double swaps are made
         """
-        pass
+        safe_spots = []
+        swappable_agents_distances = {}
+        # find all safe spots -> a point on the grid such that no neighborhoods of currently infected or exposed agents reach
+        # must be a recovered spot so that the recovered induvidual can swap with them
+        for i in range(self.rows):
+            for j in range(self.cols):
+                curr_agent = self.grid[i][j]
+                if curr_agent.untouched:
+                    if curr_agent not in self.swapped_agents:
+                        swappable_agents_distances[curr_agent.number] = self.distance_dict[self.initial_agent.number][curr_agent.number]
+                    continue
+                if curr_agent.recovered:
+                    # assume it is a safe spot
+                    safe_spot = True
+                    # check each agent against that potential safe spot
+                    for k in range(self.rows):
+                        for l in range(self.cols):
+                            next_curr_agent = self.grid[k][l]
+                            # if the agent is infected or exposed
+                            if next_curr_agent.infected or next_curr_agent.exposed:
+                                # if the distance from exposed/infected agent to recovered agent < neighborhood of exposed/infected agent
+                                if self.distance_dict[next_curr_agent.number][curr_agent.number] < next_curr_agent.neighborhood_size:
+                                    safe_spot = False
+                    if safe_spot:
+                        safe_spots.append(curr_agent)
+        sorted_swappable_agents_distances = {k: v for k, v in sorted(swappable_agents_distances.items(), key=lambda item: item[1])}
+        # make the swaps
+        for recovered_agent in safe_spots:
+            # if we haven't swapped this agent yet
+            next_to_swap = next(iter(sorted_swappable_agents_distances))
+            curr_untouched_agent = self.agents[next_to_swap]
+            curr_untouched_agent.need_to_see = True
+            if recovered_agent not in self.swapped_agents and curr_untouched_agent not in self.swapped_agents:
+                # swap the recovered agent with a random untouched agent
+                self.grid[recovered_agent.row][recovered_agent.col] = curr_untouched_agent
+                self.grid[curr_untouched_agent.row][curr_untouched_agent.col] = recovered_agent
+                # keep track of what agents are swapped for consistency
+                self.swapped_agents.append(curr_untouched_agent)
+                self.swapped_agents.append(recovered_agent)
+        # update distances
+        self.distance_dict = self.calc_distance_dict()
 
 
     def __str__(self):
