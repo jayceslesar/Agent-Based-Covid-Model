@@ -236,7 +236,10 @@ class Space:
         # make the swaps
         for recovered_agent in safe_spots:
             # if we haven't swapped this agent yet
-            next_to_swap = next(iter(sorted_swappable_agents_distances))
+            try:
+                next_to_swap = next(iter(sorted_swappable_agents_distances))
+            except StopIteration:
+                continue
             curr_untouched_agent = self.agents[next_to_swap]
             curr_untouched_agent.need_to_see = True
             if recovered_agent not in self.swapped_agents and curr_untouched_agent not in self.swapped_agents:
@@ -354,7 +357,7 @@ class Space:
             elif self.swap_type == 'specific':
                 self._specific_swap_()
             elif self.swap_type == 'smart':
-                self._smart_specific_swap_()
+                self._smart_swap_()
 
         # step complete
         self.steps_taken += 1
