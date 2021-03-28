@@ -2,7 +2,11 @@ import numpy as np
 import Space
 import itertools
 import copy
+from abc import abstractmethod, ABC
+from typing import Tuple, List, Dict, Any, Union
+import random
 
+random.seed(42)
 
 def enumerate_states(space: Space.Space) -> list:
     """Enumerates the states of a Space object
@@ -43,7 +47,7 @@ def get_next_states(space: Space.Space) -> Space.Space:
     # build coordinates
     for row in range(space.rows):
         for col in range(space.cols):
-            spaces.append([row, col])
+            spaces.append((row, col))
     # find all unique permutations of swaps
     spaces = list(itertools.combinations(spaces, 2))
 
@@ -86,3 +90,145 @@ def reward_generator(states: list):
     """
     for state in states:
         yield reward(state)
+
+class RL_Agent(ABC):
+    """Abstract base agent class
+
+    Args:
+        ABC (Object): Python standard abstract base class
+    """
+    def __init__(self):
+        """Initialize the instance
+        """
+        self.prob_dist = {}
+        self.action_to_take = {}
+
+    @abstractmethod
+    def get_action(self, env: Space.Space) -> Tuple[int, int, int]:
+        pass
+
+    @abstractmethod
+    def get_prob_dist(self, env: Space.Space) -> List[Tuple[Tuple[int, int, int], float]]:
+        pass
+
+    def get_possible_actions(self, env: Space.Space) -> List:
+        """Gets all the actions possible from one state to the next
+
+        Args:
+            env (Space.Space): current state
+
+        Returns:
+            actions (List): list of all actions that can be taken
+        """
+        actions = []
+        for row in range(env.rows):
+            for col in range(env.cols):
+                actions.append((row, col))
+        # find all unique permutations of swaps
+        actions = list(itertools.combinations(actions, 2))
+        return actions
+
+
+class RandomAgent(RL_Agent):
+    """RandomAgent class for the covid simulation game
+
+    Args:
+        RL_Agent (Object): Base class for interacting with the simulation
+    """
+    def __init__(self):
+        """Initialize the instance
+        """
+        super().__init__()
+
+    def get_action(self, state: Space.Space):
+        """picks an action from the list of actions
+
+        Args:
+            state (Space.Space): current representation of state (grid)
+
+        Returns:
+            actions (List): action of what swap to make that step of the simulation
+        """
+        if state in self.action_to_take:
+            action = self.action_to_take[state]
+            return action
+
+        action = random.choice(RL_Agent.get_possible_actions(state))
+        return action
+
+    def get_prob_dist(self, state: Space.Space) -> List[Tuple[Tuple[int, int, int], float]]:
+        """Generate the probability distribution for the set of actions
+
+        Args:
+            state (Space.Space): current state
+
+        Returns:
+            List[Tuple[Tuple[int, int, int], float]]: probabilities for each action to be taken
+        """
+        actions = RL_Agent.get_possible_actions(state, state)
+        num_actions = len(actions)
+        probability = float(1/num_actions)
+        return_probs = []
+
+        for action in actions:
+            if (state, action) in self.prob_dist:
+                return_probs.append((action, self.prob_dist[(state, action)]))
+            else:
+                self.prob_dist[(state, action)] = probability
+                return_probs.append((action, probability))
+
+        return return_probs
+
+
+def policy_evaluation(states: List[Space.Space], policy: RandomAgent, discount: float = 0.1) -> Dict[Tuple[Tuple[int], int], int]:
+    """Runs the policy evaluation
+
+    Args:
+        states (List[Space.Space]): States to look over
+        policy (RandomAgent): The policy to use
+        discount (float, optional): discount. Defaults to 0.1.
+
+    Returns:
+        Dict[Tuple[Tuple[int], int], int]: [description]
+    """
+    value_dict = {}
+    threshold = 0.1
+
+    for state in states:
+        # terminal state
+        if state.steps_taken == state.iterations:
+            value_dict[(state, 1)] = 0
+        else:
+            value_dict[(state, 1)] = 1
+
+    while True:
+        delta = 0
+        for state in states:
+            v = value_dict[(state, 1)]
+            actions_probabilities_state = policy.get_prob_dist(state)
+
+            for action, prob in actions_probabilities_state:
+                total_value_sum = 0
+                next_state = copy.deepcopy(state)
+                next_state._RL_agent_swap(action[0][0], action[0][1], action[1][0], action[1][1])
+                # get all state_primes and their respective probabilities
+                state_prime_and_probability = [(next_state, 1)]
+                part_two_sum = 0
+                for state_prime, state_prime_probability in state_prime_and_probability:
+                    r = reward(next_state)
+                    if (state_prime, 1) in value_dict:
+                        value = value_dict[(state_prime, 1)]
+                    else:
+                        value_dict[(state_prime, 1)] = 1
+                        value = 1
+                    part_two_sum += (state_prime_probability * (r + (discount * value)))
+
+            total_value_sum += (prob * part_two_sum)
+
+            value_dict[(state, 1)] = total_value_sum
+            delta = max(delta, abs(v - value_dict[(state, 1)]))
+
+        if delta < threshold:
+            break
+
+    return value_dict

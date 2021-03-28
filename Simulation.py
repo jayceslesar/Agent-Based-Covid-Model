@@ -18,7 +18,7 @@ import Space
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
-from RL_Agent import enumerate_states, get_next_states, reward_generator
+from RL_Agent import enumerate_states, get_next_states, reward_generator, policy_evaluation, RandomAgent
 import copy
 
 class Simulation:
@@ -36,23 +36,10 @@ class Simulation:
         self.m = Space.Space(self.rows, self.cols, self.steps, self.output, self.swap_type, seed)
 
         enum_m = copy.deepcopy(self.m)
-        base_m = copy.deepcopy(self.m)
-        start_time = time.perf_counter()
         states = enumerate_states(enum_m)
-        end_time = time.perf_counter()
-
-        print('enumerate states time')
-        print(end_time - start_time)
-        print('num_states')
-        print(len(states))
-
-        rewards = reward_generator(states)
-
-        # our simulation if there was no interaction
-        base_states = [base_m]
-        while base_m.steps_taken < base_m.iterations:
-                base_m._step_()
-                base_states.append(base_m)
+        v1 = policy_evaluation(states, RandomAgent())
+        for s, r in v1:
+            print(r)
 
 
     def viz(self):
