@@ -18,6 +18,8 @@ import Space
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
+from RL_Agent import enumerate_states, get_next_states, reward_generator
+import copy
 
 class Simulation:
     def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int):
@@ -32,6 +34,26 @@ class Simulation:
 
         self.output = output
         self.m = Space.Space(self.rows, self.cols, self.steps, self.output, self.swap_type, seed)
+
+        enum_m = copy.deepcopy(self.m)
+        base_m = copy.deepcopy(self.m)
+        start_time = time.perf_counter()
+        states = enumerate_states(enum_m)
+        end_time = time.perf_counter()
+
+        print('enumerate states time')
+        print(end_time - start_time)
+        print('num_states')
+        print(len(states))
+
+        rewards = reward_generator(states)
+
+        # our simulation if there was no interaction
+        base_states = [base_m]
+        while base_m.steps_taken < base_m.iterations:
+                base_m._step_()
+                base_states.append(base_m)
+
 
     def viz(self):
         global SCREEN, CLOCK
@@ -53,33 +75,6 @@ class Simulation:
             time.sleep(0.2)
         pygame.quit()
 
-        # create social network
-        print("making social network...")
-        self.m.social_network = sn.SocialNetwork(self.m.initial_agent, self.m.agents)
-        # Prints out Social network
-        for key in self.m.social_network.network:
-            self.m.social_network.tracer(key)
-
-        # Finds R0
-        total_infected = 0
-        total_spreaders = 0
-        for i in range(self.m.rows):
-            for j in range(self.m.cols):
-                curr_agent = self.m.grid[i][j]
-                total_infected += curr_agent.total_infected
-                if curr_agent.infected or curr_agent.recovered:
-                    total_spreaders += 1
-
-        r0 = total_infected / total_spreaders
-        print("Total infected was " + str(total_infected))
-        print("Total spreaders were " + str(total_spreaders))
-        print("The R0 for this run was " + str(r0))
-
-        title = self.swap_type + " swap"
-        sn_grapher = sng.SocialNetworkGrapher(title, self.fig, self.pos_a, self.pos_b, self.pos_c)
-        sn_grapher.print_graph(self.m.social_network_log, self.m.agents)
-
-
     def draw(self, grid):
         for x, i in enumerate(range(self.rows)):
             for y, j in enumerate(range(self.cols)):
@@ -94,9 +89,9 @@ class Simulation:
         # p.join()
 
 if __name__ == '__main__':
-    rows = 5
-    cols = 5
-    num_steps = 5
+    rows = 3
+    cols = 3
+    num_steps = 3
     output = False
     swap_type = 'none'
     seed = 42
