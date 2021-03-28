@@ -20,7 +20,7 @@ from multiprocessing import Process
 import SocialNetworkGrapher as sng
 
 class Simulation:
-    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int, file_name: str, fig: plt.figure, pos_a: int, pos_b: int, pos_c: int):
+    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int):
         self.rows = rows
         self.cols = cols
         self.steps = num_steps
@@ -29,11 +29,6 @@ class Simulation:
         self.height_per_block = self.WINDOW_HEIGHT // rows
         self.width_per_block = self.WINDOW_WIDTH // cols
         self.swap_type = swap_type
-        self.file_name = file_name
-        self.fig = fig
-        self.pos_a = pos_a
-        self.pos_b = pos_b
-        self.pos_c = pos_c
 
         self.output = output
         self.m = Space.Space(self.rows, self.cols, self.steps, self.output, self.swap_type, seed)
@@ -41,23 +36,22 @@ class Simulation:
     def viz(self):
         global SCREEN, CLOCK
         BLACK = (0, 0, 0)
-        # pygame.init()
-        # SCREEN = pygame.display.set_mode((self.WINDOW_HEIGHT, self.WINDOW_WIDTH))
-        # CLOCK = pygame.time.Clock()
-        # SCREEN.fill(BLACK)
+        pygame.init()
+        SCREEN = pygame.display.set_mode((self.WINDOW_HEIGHT, self.WINDOW_WIDTH))
+        CLOCK = pygame.time.Clock()
+        SCREEN.fill(BLACK)
 
         while self.m.steps_taken < self.m.iterations:
             model = self.m
             model._step_()
-            # self.draw(self.m.grid)
-        #     for event in pygame.event.get():
-        #         if event.type == pygame.QUIT:
-        #             pygame.quit()
-        #             sys.exit()
-        #
-        #     pygame.display.update()
-        #     time.sleep(0.2)
-        # pygame.quit()
+            self.draw(self.m.grid)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            pygame.display.update()
+            time.sleep(0.2)
+        pygame.quit()
 
         # create social network
         print("making social network...")
@@ -99,3 +93,12 @@ class Simulation:
         self.viz()
         # p.join()
 
+if __name__ == '__main__':
+    rows = 20
+    cols = 20
+    num_steps = 100
+    output = False
+    swap_type = 'specific'
+    seed = 42
+    sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
+    sim.run()

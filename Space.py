@@ -146,6 +146,16 @@ class Space:
             print("swapped agent number " + str(self.grid[init_swap_row][init_swap_col].number) +
                 " with agent number " + str(self.grid[to_swap_row][to_swap_col].number))
 
+    def _RL_agent_swap(self, init_swap_row, init_swap_col, to_swap_row, to_swap_col):
+        init_agent = self.grid[init_swap_row][init_swap_col]
+        to_agent = self.grid[to_swap_row][to_swap_col]
+        # swap the object
+        self.grid[init_swap_row][init_swap_col] = to_agent
+        self.grid[to_swap_row][to_swap_col] = init_agent
+
+        # update distances dict
+        self.distance_dict = self.calc_distance_dict()
+
 
     def _specific_swap_(self):
         """
