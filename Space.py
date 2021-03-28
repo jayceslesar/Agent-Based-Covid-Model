@@ -5,7 +5,7 @@ import numpy as np
 import Graph
 import SocialNetwork as sn
 
-# TODO:: add a daily infections list to add the number of new infections each step and fix run condtions to say to step while there is at least 1 recovered person
+
 class Space:
     def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int):
         rd.seed(seed)
@@ -56,8 +56,10 @@ class Space:
             col = []
             for j in range(self.cols):
                 agent = Agent.Agent(n, i, j)
-                agent.INCUBATION_PERIOD = self.INCUBATION_PERIOD_DISTRIBUTION.pop(rd.randint(0, len(self.INCUBATION_PERIOD_DISTRIBUTION) - 1))
-                agent.INFECTIVE_LENGTH = self.INFECTIVE_LENGTH_DISTRUBUTION.pop(rd.randint(0, len(self.INFECTIVE_LENGTH_DISTRUBUTION) - 1))
+                # agent.INCUBATION_PERIOD = self.INCUBATION_PERIOD_DISTRIBUTION.pop(rd.randint(0, len(self.INCUBATION_PERIOD_DISTRIBUTION) - 1))
+                # agent.INFECTIVE_LENGTH = self.INFECTIVE_LENGTH_DISTRUBUTION.pop(rd.randint(0, len(self.INFECTIVE_LENGTH_DISTRUBUTION) - 1))
+                agent.INCUBATION_PERIOD = rd.randint(1, 3)
+                agent.INFECTIVE_LENGTH = rd.randint(1, 3)
                 if n == self.initial_infected:
                     agent.infected = True
                     col.append(agent)
@@ -75,7 +77,6 @@ class Space:
         self.log.append(self.grid)
         # build a distances dict for distances with neighborhoods
         self.distance_dict = self.calc_distance_dict()
-
 
     def calc_distance_dict(self) -> dict:
         """
@@ -98,7 +99,6 @@ class Space:
                 distance_dict[self.grid[i][j].number] = agent_distances
         return distance_dict
 
-
     def _calc_distance_(self, x1, y1, x2, y2) -> float:
         """
         distance between two points on a linear plane
@@ -115,7 +115,6 @@ class Space:
         O(1)
         """
         return ((x2-x1)**2 + (y2-y1)**2)**0.5
-
 
     def _random_swap_(self):
         """
@@ -155,7 +154,6 @@ class Space:
 
         # update distances dict
         self.distance_dict = self.calc_distance_dict()
-
 
     def _specific_swap_(self):
         """
@@ -205,7 +203,6 @@ class Space:
                         del untouched_agents[random_index]
         # update distances
         self.distance_dict = self.calc_distance_dict()
-
 
     def _smart_swap_(self):
         """
@@ -270,7 +267,6 @@ class Space:
                 out += str(agent) + " "
             out += "\n"
         return out
-
 
     def _neighborhood_infect_(self):
         """
@@ -352,7 +348,6 @@ class Space:
                 if curr_agent.recovered:
                     self.recovered_count += 1
 
-
         #update data
         self.data.update_graph(self.suceptible_count, self.infected_count, self.exposed_count, self.recovered_count, 0)
 
@@ -383,7 +378,6 @@ class Space:
         # add to the log of grids in this instance
         self.log.append(self.grid)
 
-
     def run(self):
         """
         runs the model until iteration cap
@@ -412,9 +406,3 @@ class Space:
                 total_infected += curr_agent.num_infected
                 if (curr_agent.infected or curr_agent.recovered):
                     total_spreaders += 1
-
-        # r0 = total_infected/total_spreaders
-        # if self.output:
-        #     print("Total infected was " + str(total_infected))
-        #     print("Total spreaders were " + str(total_spreaders))
-        #     print("The R0 for this run was " + str(r0))

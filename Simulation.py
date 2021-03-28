@@ -94,11 +94,11 @@ class Simulation:
         # p.join()
 
 if __name__ == '__main__':
-    rows = 20
-    cols = 20
-    num_steps = 100
+    rows = 5
+    cols = 5
+    num_steps = 5
     output = False
-    swap_type = 'specific'
+    swap_type = 'none'
     seed = 42
     sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
     sim.run()
