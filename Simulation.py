@@ -14,7 +14,6 @@ from pygame.locals import *
 import Space
 import time
 import Graph
-import Space
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
@@ -39,7 +38,7 @@ class Simulation:
         enum_m = copy.deepcopy(self.m)
         states = enumerate_states(enum_m)
         print('states calculated....')
-        v1 = policy_evaluation(states, agent())
+        v1 = policy_evaluation(states, agent)
 
         global SCREEN, CLOCK
         BLACK = (0, 0, 0)
@@ -50,8 +49,8 @@ class Simulation:
 
         while self.m.steps_taken < self.m.iterations:
             m = self.m
-            agent_action = agent.get_action(state=m)
-            m._RL_agent_swap()
+            action = agent.get_action(m)
+            m._RL_agent_swap(action[0][0], action[0][1], action[1][0], action[1][1])
             m._step_()
             self.draw(m.grid)
             for event in pygame.event.get():
@@ -71,16 +70,19 @@ class Simulation:
 
 
 if __name__ == '__main__':
-    rows = 3
-    cols = 3
-    num_steps = 1
+    rows = 2
+    cols = 2
+    num_steps = 3
     output = False
     swap_type = 'none'
     seed = 42
-    sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
+    rand_sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
     # random
     print('random')
-    sim.play_sim(RandomAgent)
+    rand = RandomAgent()
+    rand_sim.play_sim(rand)
     # det
+    det_sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
     print('deterministic')
-    sim.play_sim(Deterministic_Agent)
+    det = Deterministic_Agent()
+    det_sim.play_sim(det)

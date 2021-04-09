@@ -91,7 +91,7 @@ def _set_state(state: Space.Space, action: tuple):
         """
         next_state = copy.deepcopy(state)
         next_state._RL_agent_swap(action[0][0], action[0][1], action[1][0], action[1][1])
-        next_state.step()
+        next_state._step_()
         return next_state
 
 
@@ -169,18 +169,22 @@ class Deterministic_Agent(RL_Agent):
             return action
 
         actions = self.get_possible_actions(state)
-        action = _determine_best_action(actions)
+        action = self._determine_best_action(state, actions)
         return action
 
-    def _determine_best_action(self, actions: list):
+    def _determine_best_action(self, state: Space.Space, actions: list):
         """Corners infected people by swapping
 
         Args:
             actions (list): possible actions to take
         """
-        action_rewards = reward_generator(actions)
-        max_value = max(action_rewards)
-        max_index = actions.index(max_value)
+        rewards = []
+        for action in actions:
+            copy_state = copy.deepcopy(state)
+            rewards.append(reward(_set_state(state, action)))
+
+        max_value = max(rewards)
+        max_index = rewards.index(max_value)
         return actions[max_index]
 
 
@@ -219,7 +223,7 @@ class RandomAgent(RL_Agent):
         """
         super().__init__()
 
-    def get_action(self, state=None):
+    def get_action(self, state):
         """picks an action from the list of actions
 
         Args:
@@ -232,7 +236,7 @@ class RandomAgent(RL_Agent):
             action = self.action_to_take[state]
             return action
 
-        action = random.choice(RL_Agent.get_possible_actions(state))
+        action = random.choice(self.get_possible_actions(state))
         return action
 
     def get_prob_dist(self, state: Space.Space) -> List[Tuple[Tuple[int, int, int], float]]:
