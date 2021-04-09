@@ -18,7 +18,7 @@ import Space
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
-from RL_Agent import enumerate_states, get_next_states, reward_generator, policy_evaluation, RandomAgent
+from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, RandomAgent, Deterministic_Agent, RL_Agent
 import copy
 
 class Simulation:
@@ -35,14 +35,12 @@ class Simulation:
         self.output = output
         self.m = Space.Space(self.rows, self.cols, self.steps, self.output, self.swap_type, seed)
 
+    def play_sim(self, agent: RL_Agent):
         enum_m = copy.deepcopy(self.m)
         states = enumerate_states(enum_m)
-        v1 = policy_evaluation(states, RandomAgent())
-        for s, r in v1:
-            print(r)
+        print('states calculated....')
+        v1 = policy_evaluation(states, agent())
 
-
-    def viz(self):
         global SCREEN, CLOCK
         BLACK = (0, 0, 0)
         pygame.init()
@@ -51,15 +49,17 @@ class Simulation:
         SCREEN.fill(BLACK)
 
         while self.m.steps_taken < self.m.iterations:
-            model = self.m
-            model._step_()
-            self.draw(self.m.grid)
+            m = self.m
+            agent_action = agent.get_action(state=m)
+            m._RL_agent_swap()
+            m._step_()
+            self.draw(m.grid)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
             pygame.display.update()
-            time.sleep(0.2)
+            time.sleep(3)
         pygame.quit()
 
     def draw(self, grid):
@@ -69,18 +69,18 @@ class Simulation:
                                    self.height_per_block, self.height_per_block)
                 pygame.draw.rect(SCREEN, grid[i][j].get_color(), rect)
 
-    def run(self):
-        # p = Process(target=Graph.graph_process, args=(self.file_name, self.rows*self.cols, self.steps))
-        # p.start()
-        self.viz()
-        # p.join()
 
 if __name__ == '__main__':
     rows = 3
     cols = 3
-    num_steps = 3
+    num_steps = 1
     output = False
     swap_type = 'none'
     seed = 42
     sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
-    sim.run()
+    # random
+    print('random')
+    sim.play_sim(RandomAgent)
+    # det
+    print('deterministic')
+    sim.play_sim(Deterministic_Agent)
