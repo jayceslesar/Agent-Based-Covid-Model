@@ -6,7 +6,9 @@ from abc import abstractmethod, ABC
 from typing import Tuple, List, Dict, Any, Union
 import random
 
+
 random.seed(42)
+
 
 def enumerate_states(space: Space.Space) -> list:
     """Enumerates the states of a Space object
@@ -107,6 +109,7 @@ def reward_generator(states: list):
     for state in states:
         yield reward(state)
 
+
 class RL_Agent(ABC):
     """Abstract base agent class
 
@@ -143,6 +146,7 @@ class RL_Agent(ABC):
         # find all unique permutations of swaps
         actions = list(itertools.combinations(actions, 2))
         return actions
+
 
 class Deterministic_Agent(RL_Agent):
     """RandomAgent class for the covid simulation game
@@ -187,7 +191,6 @@ class Deterministic_Agent(RL_Agent):
         max_index = rewards.index(max_value)
         return actions[max_index]
 
-
     def get_prob_dist(self, state: Space.Space) -> List[Tuple[Tuple[int, int, int], float]]:
         """Generate the probability distribution for the set of actions
 
@@ -210,6 +213,23 @@ class Deterministic_Agent(RL_Agent):
                 return_probs.append((action, probability))
 
         return return_probs
+
+
+class Soft_Deterministic_Agent(Deterministic_Agent):
+    def __init__(self):
+        super().__init__()
+        self.eps = 0.1
+
+    def get_action(self, space: Space.Space):
+        # take a random action
+        draw = np.random.random()
+        if draw < self.eps:
+            action = random.choice(self.get_possible_actions(space))
+            return action
+
+        # otherwise, take the usual action
+        action = self.get_action(space)
+        return action
 
 
 class RandomAgent(RL_Agent):
@@ -263,7 +283,7 @@ class RandomAgent(RL_Agent):
         return return_probs
 
 
-def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: float = 0.1) -> Dict[Tuple[Tuple[int], int], int]:
+def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: float=0.1) -> Dict[Tuple[Tuple[int], int], int]:
     """Runs the policy evaluation
 
     Args:
@@ -289,7 +309,6 @@ def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: flo
         for state in states:
             v = value_dict[(state, 1)]
             actions_probabilities_state = policy.get_prob_dist(state)
-
             for action, prob in actions_probabilities_state:
                 total_value_sum = 0
                 next_state = copy.deepcopy(state)
@@ -307,12 +326,63 @@ def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: flo
                     part_two_sum += (state_prime_probability * (r + (discount * value)))
 
             total_value_sum += (prob * part_two_sum)
-
             value_dict[(state, 1)] = total_value_sum
             delta = max(delta, abs(v - value_dict[(state, 1)]))
-
 
         if delta < threshold:
             break
 
     return value_dict
+
+
+def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float=1.0) -> Tuple[RL_Agent, Dict[Tuple[Tuple[int], int], int]]:
+    value_dict = {}
+    threshold = 0.1
+
+    for state in states:
+        # terminal state
+        if state.steps_taken == state.iterations:
+            value_dict[(state, 1)] = 0
+        else:
+            value_dict[(state, 1)] = 1
+
+    counter = 0
+    while True:
+        counter += 1
+
+        delta = 0
+        for state in states:
+            v = value_dict[(state, 1)]
+            # set env to current state to get actions and probabilities for state
+            actions_probabilities_state = policy.get_prob_dist(state)
+
+            action_sum_pair = []
+            for action, prob in actions_probabilities_state:
+                # set env to current state for each loop to get state_prime
+                # get all state_primes and their respective probabilities
+                state_prime_and_probability = [(_set_state(state, action), 1)]
+                for state_prime, state_prime_probability in state_prime_and_probability:
+                    r = reward(state_prime)
+                    if (state_prime, 1) in value_dict:
+                        value = value_dict[(state_prime, 1)]
+                    else:
+                        value_dict[(state_prime, 1)] = 1
+                        value = 1
+                    action_sum_pair.append((action, (state_prime_probability * (r + (discount * value)))))
+
+            if len(action_sum_pair) > 0:
+                max_action_sum_pair = max(action_sum_pair, key=lambda item: item[1])
+                value_dict[(state, 1)] = max_action_sum_pair[1]
+
+                for action, sum in action_sum_pair:
+                    if action == max_action_sum_pair[0]:
+                        policy.prob_dist[(state, action)] = 1
+                    else:
+                        policy.prob_dist[(state, action)] = 0
+
+            delta = max(delta, abs(v - value_dict[(state, 1)]))
+
+        if delta < threshold:
+            break
+
+    return (policy, value_dict)

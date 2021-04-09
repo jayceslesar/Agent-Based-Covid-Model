@@ -17,7 +17,7 @@ import Graph
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
-from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, RandomAgent, Deterministic_Agent, RL_Agent
+from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, value_iteration, RandomAgent, Deterministic_Agent, Soft_Deterministic_Agent, RL_Agent
 import copy
 
 class Simulation:
@@ -38,7 +38,10 @@ class Simulation:
         enum_m = copy.deepcopy(self.m)
         states = enumerate_states(enum_m)
         print('states calculated....')
-        v1 = policy_evaluation(states, agent)
+        value_dict = value_iteration(states, agent)[1]
+        for key in value_dict.keys():
+            if value_dict[key] != 1:
+                print(key, value_dict[key])
 
         global SCREEN, CLOCK
         BLACK = (0, 0, 0)
@@ -72,7 +75,7 @@ class Simulation:
 if __name__ == '__main__':
     rows = 2
     cols = 2
-    num_steps = 3
+    num_steps = 2
     output = False
     swap_type = 'none'
     seed = 42
@@ -86,3 +89,8 @@ if __name__ == '__main__':
     print('deterministic')
     det = Deterministic_Agent()
     det_sim.play_sim(det)
+    # soft
+    soft_sim = Simulation(rows, cols, num_steps, output, swap_type, seed)
+    print('soft')
+    soft = Soft_Deterministic_Agent()
+    soft_sim.play_sim(soft)
