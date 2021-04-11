@@ -4,6 +4,7 @@ import itertools
 import copy
 from abc import abstractmethod, ABC
 from typing import Tuple, List, Dict, Any, Union
+from collections import defaultdict
 import random
 
 
@@ -283,6 +284,55 @@ class RandomAgent(RL_Agent):
         return return_probs
 
 
+class TDAgent(RL_Agent):
+    def __init__(self, eps=0.1):
+        self.eps = eps
+        self.qtable = {'lambda': 0.13579}
+        self.novel = set()
+        super().__init__()
+
+    def get_possible_actions(self, state: Space.Space) -> List[Action]:
+        actions = super.get_possible_actions(state)
+        return actions
+
+    def get_max_action(self, state: Space.Space) -> Action:
+        """Returns the action that has the max q-value"""
+        actions = self.get_possible_actions(state)
+        max_q = -1e7
+        # initialize with a random action
+        if len(actions) == 0:
+            return None
+        i = np.random.choice(range(len(actions)))
+        max_action = actions[i]
+        for action in actions:
+            q = self.qtable[(state, action)]
+            if q > max_q:
+                max_q = q
+                max_action = action
+        return max_action
+
+    def get_action(self, state: Space.Space) -> Tuple[Action, float]:
+        actions = self.get_possible_actions(state)
+        # to ensure that we don't have some weird ordering bias.
+        np.random.shuffle(actions)
+        n = len(actions)
+        if n == 0:
+            return (None, 1.0)
+        max_action = self.get_max_action(state)
+        p_other_action = self.eps / n
+        p_max_action = p_other_action + (1 - self.eps)
+
+        if max_action == 0.13579:
+            self.novel.add(state)
+
+        if np.random.random() < self.eps and n > 1:
+            i = np.random.choice(range(n))
+            action = actions[i]
+            return (action, p_max_action if action == max_action else p_other_action)
+        else:
+            return (max_action, p_max_action)
+
+
 def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: float=0.1) -> Dict[Tuple[Tuple[int], int], int]:
     """Runs the policy evaluation
 
@@ -386,3 +436,29 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
             break
 
     return (policy, value_dict)
+
+
+def get_trajectory(env: Space.Space, agent: RL_Agent, discount_factor: float):
+    """Tells how well a given agent should do
+
+    Args:
+        env (Space.Space): Environment
+        agent (RL_Agent): Agent who plays the simulation
+
+    Returns:
+        list: list of states and their rewards
+    """
+    reward_tuples = []
+
+    env_curr = copy.deepcopy(env)
+
+    reward_sum = 0
+    while env_curr.steps_taken < env_curr.iterations:
+        action = agent.get_action(env_curr)
+        env_curr._RL_agent_swap(action[0][0], action[0][1], action[1][0], action[1][1])
+        env_curr._step_()
+        reward = reward(env_curr)
+        reward_tuples.append((env_curr, action, reward))
+        reward_sum = (reward) +  discount_factor * reward_sum
+
+    return reward_tuples, reward_sum

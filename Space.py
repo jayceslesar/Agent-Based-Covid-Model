@@ -367,7 +367,6 @@ class Space:
         # step complete
         self.steps_taken += 1
         # print
-        print("step " + str(self.steps_taken) + "/" + str(self.iterations))
         if self.output:
             print("step " + str(self.steps_taken))
             print("suceptible:", self.suceptible_count)
