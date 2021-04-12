@@ -229,7 +229,7 @@ class Soft_Deterministic_Agent(Deterministic_Agent):
             return action
 
         # otherwise, take the usual action
-        action = self.get_action(space)
+        action = super.get_action(space)
         return action
 
 
@@ -291,11 +291,11 @@ class TDAgent(RL_Agent):
         self.novel = set()
         super().__init__()
 
-    def get_possible_actions(self, state: Space.Space) -> List[Action]:
+    def get_possible_actions(self, state: Space.Space) -> List:
         actions = super.get_possible_actions(state)
         return actions
 
-    def get_max_action(self, state: Space.Space) -> Action:
+    def get_max_action(self, state: Space.Space):
         """Returns the action that has the max q-value"""
         actions = self.get_possible_actions(state)
         max_q = -1e7
@@ -311,7 +311,7 @@ class TDAgent(RL_Agent):
                 max_action = action
         return max_action
 
-    def get_action(self, state: Space.Space) -> Tuple[Action, float]:
+    def get_action(self, state: Space.Space) -> Tuple:
         actions = self.get_possible_actions(state)
         # to ensure that we don't have some weird ordering bias.
         np.random.shuffle(actions)
