@@ -34,6 +34,7 @@ def enumerate_states(space: Space.Space) -> list:
         states += next_states
         current_states = next_states
         space._step_()
+
     return states
 
 
@@ -291,10 +292,6 @@ class TDAgent(RL_Agent):
         self.novel = set()
         super().__init__()
 
-    def get_possible_actions(self, state: Space.Space) -> List:
-        actions = super.get_possible_actions(state)
-        return actions
-
     def get_max_action(self, state: Space.Space):
         """Returns the action that has the max q-value"""
         actions = self.get_possible_actions(state)
@@ -312,7 +309,7 @@ class TDAgent(RL_Agent):
         return max_action
 
     def get_action(self, state: Space.Space) -> Tuple:
-        actions = self.get_possible_actions(state)
+        actions = super.get_possible_actions(state)
         # to ensure that we don't have some weird ordering bias.
         np.random.shuffle(actions)
         n = len(actions)
