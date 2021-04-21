@@ -21,8 +21,10 @@ import copy
 import pickle
 import numpy as np
 import json
+import pandas as pd
 import Space
-
+from PIL import Image
+import os
 
 class Simulation:
     def __init__(self, rows: int, cols: int, num_steps: int, output: bool, seed: int, states):
@@ -73,6 +75,45 @@ class Simulation:
         #     time.sleep(3)
         # pygame.quit()
 
+    def play_sim_save_viz(self, agent: RL_Agent, sc_path):
+        global SCREEN, CLOCK
+        BLACK = (0, 0, 0)
+        pygame.init()
+        SCREEN = pygame.display.set_mode((self.WINDOW_HEIGHT, self.WINDOW_WIDTH))
+        CLOCK = pygame.time.Clock()
+        SCREEN.fill(BLACK)
+
+        stills = []
+        enum_m = copy.deepcopy(self.m)
+        while enum_m.steps_taken < enum_m.iterations:
+            action = agent.get_action(enum_m)
+            enum_m._RL_agent_swap(action[0][0], action[0][1], action[1][0], action[1][1])
+            enum_m._step_()
+            self.draw(enum_m.grid)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            pygame.display.update()
+            time.sleep(.3)
+            self.screenshot(SCREEN, sc_path, enum_m.steps_taken)
+            stills.append(os.path.join(sc_path, "step" + str(enum_m.steps_taken) + ".png"))
+
+        self.scores.append(enum_m.infected_count + enum_m.recovered_count)
+        pygame.quit()
+
+        img, *imgs = [Image.open(f) for f in stills]
+        img.save(fp=os.path.join(sc_path, f'{agent.type}.gif'), format='GIF', append_images=imgs, save_all=True, duration=20, loop=0)
+        for im in stills:
+            os.remove(im)
+
+    def screenshot(self, screen, path, step):
+        title = "step" + str(step)
+        file_save_as = os.path.join(path, title + ".png")
+        pygame.image.save(screen, file_save_as)
+        print(f"step {step} has been screenshotted")
+
+
     def draw(self, grid):
         for x, i in enumerate(range(self.rows)):
             for y, j in enumerate(range(self.cols)):
@@ -84,16 +125,16 @@ class Simulation:
 if __name__ == '__main__':
     rows = 10
     cols = 10
-    num_steps = 15
+    num_steps = 5
     output = False
     swap_type = 'none'
     seed = 42
     test_space = Space.Space(2, 2, 1, output, seed)
-    player, diffs, sarsa_states, num_episodes, step = expected_SARSA(copy.deepcopy(test_space))
-    print(len(sarsa_states))
-    print(num_episodes)
-    states = enumerate_states(test_space)
-    print(len(states))
+    # player, diffs, sarsa_states, num_episodes, step = expected_SARSA(copy.deepcopy(test_space))
+    # print(len(sarsa_states))
+    # print(num_episodes)
+    # states = enumerate_states(test_space)
+    # print(len(states))
     # states = enumerate_states(copy.deepyop(test_space))
     # times = 100
 
@@ -101,7 +142,7 @@ if __name__ == '__main__':
     #     pickle.dump(states, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-    # rand = RandomAgent()
+    rand = RandomAgent()
     # det = Deterministic_Agent()
     # soft = Soft_Deterministic_Agent()
 
@@ -109,7 +150,8 @@ if __name__ == '__main__':
     # rand_agent_value_iteration = value_iteration(states, val_iter_rand_agent)
 
 
-    # rand_sim = Simulation(rows, cols, num_steps, output, seed, [])
+    rand_sim = Simulation(rows, cols, num_steps, output, seed, [])
+    rand_sim.play_sim_save_viz(rand, os.getcwd())
     # agents_scores_dict = {}
     # # random
     # print('random')

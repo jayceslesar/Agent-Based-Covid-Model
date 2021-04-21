@@ -24,9 +24,9 @@ import matplotlib.pyplot as plt
 
 
 BLACK = (0, 0, 0)
-rows = 10
-cols = 10
-steps = 80
+rows = 18
+cols = 18
+steps = 40
 WINDOW_HEIGHT = 800
 WINDOW_WIDTH = 800
 height_per_block = WINDOW_HEIGHT // rows
@@ -90,14 +90,15 @@ def draw(grid):
 
 def sim():
     fig = plt.figure(figsize=plt.figaspect(0.5))
-    rows_s = 10
-    cols_s = 10
-    steps_s = 30
+    rows_s = 8
+    cols_s = 8
+    steps_s = 20
     output_s = False
-    run1 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "specific", 1, "output1.csv", fig, 1, 2, 1)
-    # run2 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "specific", 1, "output2.csv")
-    run3 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "smart", 1, "output3.csv", fig, 1, 2, 2)
+    run1 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "random", 1, "output1.csv", fig, 1, 2, 1)
+    run2 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "specific", 1, "output3.csv", fig, 1, 2, 2)
+    run3 = Simulation.Simulation(rows_s, cols_s, steps_s, output_s, "smart", 1, "output3.csv", fig, 1, 3, 2)
     run1.run()
+    run2.run()
     run3.run()
     plt.show()
     # p1 = Process(target=run1.run, args=())
@@ -112,11 +113,11 @@ def sim():
 
 
 if __name__ == "__main__":
-    # p = Process(target=Graph.graph_process, args=("output.csv", rows*cols, steps))
-    # p.start()
-    # viz()
-    # p.join()
+    p = Process(target=Graph.graph_process, args=("output.csv", rows*cols, steps))
+    p.start()
+    viz()
+    p.join()
 
-    # can comment out above and uncomment below to run 3 simultaneous simulations of different types
-    sim()
+    # # can comment out above and uncomment below to run 3 simultaneous simulations of different types
+    # sim()
 
