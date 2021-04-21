@@ -11,17 +11,17 @@ Date:
 import pygame, sys
 import matplotlib.pyplot as plt
 from pygame.locals import *
-import Space
 import time
 import Graph
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
-from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, value_iteration, RandomAgent, Deterministic_Agent, Soft_Deterministic_Agent, RL_Agent, expected_SARSA
+from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, value_iteration, RandomAgent, Deterministic_Agent, Soft_Deterministic_Agent, RL_Agent, expected_SARSA, q_learning
 import copy
 import pickle
 import numpy as np
 import json
+import Space
 
 
 class Simulation:
@@ -88,9 +88,12 @@ if __name__ == '__main__':
     output = False
     swap_type = 'none'
     seed = 42
-    test_space = Space.Space(2, 2, 1, output,  seed)
+    test_space = Space.Space(2, 2, 1, output, seed)
     player, diffs, sarsa_states, num_episodes, step = expected_SARSA(copy.deepcopy(test_space))
     print(len(sarsa_states))
+    print(num_episodes)
+    states = enumerate_states(test_space)
+    print(len(states))
     # states = enumerate_states(copy.deepyop(test_space))
     # times = 100
 

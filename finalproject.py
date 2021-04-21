@@ -313,13 +313,13 @@ class TDAgent(RL_Agent):
                 max_action = action
         return max_action
 
-    def get_action(self, state: Space.Space) -> Tuple:
+    def get_action(self, state: Space.Space):
         actions = self.get_possible_actions(state)
         # to ensure that we don't have some weird ordering bias.
         np.random.shuffle(actions)
         n = len(actions)
         if n == 0:
-            return (None, 1.0)
+            return (None)
         max_action = self.get_max_action(state)
         p_other_action = self.eps / n
         p_max_action = p_other_action + (1 - self.eps)
@@ -330,15 +330,15 @@ class TDAgent(RL_Agent):
         if np.random.random() < self.eps and n > 1:
             i = np.random.choice(range(n))
             action = actions[i]
-            if action == max_action:
-                return action
-        return max_action
+            return action
+        else:
+            return max_action
 
     def get_prob_dist(self, env: Space.Space):
         pass
 
 
-def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
+def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
     player = TDAgent(eps=1.0)
 
     copy_env = copy.deepcopy(state)
@@ -358,7 +358,7 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             # scale back the exploration
             player.eps = player.eps / 2
 
-        old_q = player.qtable[(s0.__str__(), a0)]
+        old_q = player.qtable[(str(s0), str(a0))]
         r = reward(_set_state(s0, a0))
 
         if env.steps_taken == env.iterations:
@@ -369,7 +369,7 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             # which has value 0 for every action and only transitions to itself.
             new_q = old_q + alpha * (r - old_q)
             # print(s0, a0, r, old_q, new_q)
-            player.qtable[(s0.__str__(), a0)] = new_q
+            player.qtable[(str(s0), str(a0))] = new_q
             states.add(str(env))
             env = copy.deepcopy(copy_env)
             s0 = env
@@ -387,14 +387,14 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
         n_actions = len(all_actions) or 1
         # initalize with the max value
         max_action = player.get_max_action(env)
-        q_avg = player.qtable[(s1.__str__(), max_action)] * (1 - player.eps)
+        q_avg = player.qtable[(str(s1), str(max_action))] * (1 - player.eps)
         for action in all_actions:
-            q_avg += player.qtable[(s1.__str__(), action)] * player.eps * (1.0 / n_actions)
+            q_avg += player.qtable[(str(s1), action)] * player.eps * (1.0 / n_actions)
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_avg) - old_q)
         # print(s0, a0, r, old_q, new_q)
-        player.qtable[(s0.__str__(), a0)] = new_q
-        diffs[(s0.__str__(), a0)] = (new_q - old_q) / (old_q or 1)
+        player.qtable[(str(s0), str(a0))] = new_q
+        diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
         # shift
         states.add(str(s1))
 
@@ -403,6 +403,75 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
         a0 = player.get_action(env)
         step += 1
         print(step, 'step')
+        print(a0)
+    player.eps = 0.0
+    print(states)
+    return player, diffs, states, num_episodes, step
+
+def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
+    player = TDAgent(eps=1.0)
+
+    copy_env = copy.deepcopy(state)
+    diffs = {}  # track the last diffs, for funsies
+    step = 0
+    env = state
+    # grab the first state and action
+    s0 = env
+    a0 = player.get_action(env)
+    # track the total states encountered
+    states = {str(s0)}
+    # track the number of episodes
+    num_episodes = 1
+
+    while step < maxsteps and max([abs(v) for v in diffs.values()] or [1.0]) > 0.01:
+        if num_episodes > 1000 and step % 5e5 == 0 and player.eps > 0.1:
+            # scale back the exploration
+            player.eps = player.eps / 2
+
+        old_q = player.qtable[(str(s0), str(a0))]
+        r = reward(_set_state(s0, a0))
+
+        if env.steps_taken == env.iterations:
+            num_episodes += 1
+            # Need to take one step past game over so we can grab
+            # the reward from winning or losing.
+            # We can think of this like moving into the terminal state,
+            # which has value 0 for every action and only transitions to itself.
+            new_q = old_q + alpha * (r - old_q)
+            # print(s0, a0, r, old_q, new_q)
+            player.qtable[(str(s0), str(a0))] = new_q
+            states.add(str(env))
+            env = copy.deepcopy(copy_env)
+            s0 = env
+            a0 = player.get_action(s0)
+            continue# type: ignore
+        # soft det. agent returns tuple
+        env._RL_agent_swap(a0[0][0], a0[0][1], a0[1][0], a0[1][1])
+        env._step_()
+        s1 = env
+
+        # Compute the average q value at the next state
+        all_actions = player.get_possible_actions(env)
+        # we don't want to divide by 1; if there are no free actions,
+        # treat noop as the only available action
+        n_actions = len(all_actions) or 1
+        # initalize with the max value
+        max_action = player.get_max_action(env)
+        q_max = player.qtable[(str(s1), str(max_action))]
+        # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
+        new_q = old_q + alpha * (r + (gamma * q_max) - old_q)
+        # print(s0, a0, r, old_q, new_q)
+        player.qtable[(str(s0), str(a0))] = new_q
+        diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
+        # shift
+        states.add(str(s1))
+
+        s0 = s1
+        # we didn't actually take a move, so grab the next action now
+        a0 = player.get_action(env)
+        step += 1
+        print(step, 'step')
+        print(a0)
     player.eps = 0.0
     print(states)
     return player, diffs, states, num_episodes, step
