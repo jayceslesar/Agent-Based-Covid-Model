@@ -7,7 +7,7 @@ import SocialNetwork as sn
 
 
 class Space:
-    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, swap_type: str, seed: int):
+    def __init__(self, rows: int, cols: int, num_steps: int, output: bool, seed: int):
         rd.seed(seed)
         np.random.seed(seed)
         """
@@ -34,7 +34,6 @@ class Space:
         self.data = Graph.DataSaver(0, 0, 0, 0, 0, 'output.csv', self.iterations)
         self.curr_number_of_infections = 0  # current number of infections at each step
         self.curr_iterations = 0
-        self.swap_type = swap_type
 
         # distributions to pick from when building each agent below
         # TODO:: needs a much heavier tail mathematically but it works (normal at mean 2 and sd of 1.5, but take the absolute value and it works out nicely)
@@ -77,6 +76,7 @@ class Space:
         self.log.append(self.grid)
         # build a distances dict for distances with neighborhoods
         self.distance_dict = self.calc_distance_dict()
+
 
     def calc_distance_dict(self) -> dict:
         """
@@ -264,7 +264,7 @@ class Space:
         out = ""
         for row in self.grid:
             for agent in row:
-                out += str(agent) + " "
+                out += agent.__str__() + " "
             out += "\n"
         return out
 
@@ -356,13 +356,13 @@ class Space:
         self.social_network_log.append(entry)
 
         # swap
-        if self.recovered_count > 0:
-            if self.swap_type == 'random':
-                self._random_swap_()
-            elif self.swap_type == 'specific':
-                self._specific_swap_()
-            elif self.swap_type == 'smart':
-                self._smart_swap_()
+        # if self.recovered_count > 0:
+        #     if self.swap_type == 'random':
+        #         self._random_swap_()
+        #     elif self.swap_type == 'specific':
+        #         self._specific_swap_()
+        #     elif self.swap_type == 'smart':
+        #         self._smart_swap_()
 
         # step complete
         self.steps_taken += 1
