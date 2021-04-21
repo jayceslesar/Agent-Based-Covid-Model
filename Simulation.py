@@ -133,6 +133,17 @@ if __name__ == '__main__':
     # player, diffs, sarsa_states, num_episodes, step = expected_SARSA(copy.deepcopy(test_space))
     # print(len(sarsa_states))
     # print(num_episodes)
+    test_space = Space.Space(10, 10, 30, output, seed)
+    player, diffs, sarsa_states, num_episodes, step, TD_error = expected_SARSA(copy.deepcopy(test_space))
+
+    print(len(TD_error))
+
+    my_df = pd.DataFrame()
+    my_df['TD_error'] = TD_error
+    my_df.to_csv('some_csv.csv')
+
+    print(len(sarsa_states))
+    print(num_episodes)
     # states = enumerate_states(test_space)
     # print(len(states))
     # states = enumerate_states(copy.deepyop(test_space))

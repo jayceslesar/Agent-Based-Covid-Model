@@ -339,6 +339,8 @@ class TDAgent(RL_Agent):
 
 
 def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
+    TD_error = []
+
     player = TDAgent(eps=1.0)
 
     copy_env = copy.deepcopy(state)
@@ -392,6 +394,8 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
             q_avg += player.qtable[(str(s1), action)] * player.eps * (1.0 / n_actions)
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_avg) - old_q)
+        curr_TD_error = (r + (gamma * q_avg) - old_q)
+        TD_error.append(curr_TD_error)
         # print(s0, a0, r, old_q, new_q)
         player.qtable[(str(s0), str(a0))] = new_q
         diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
@@ -406,10 +410,13 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
         print(a0)
     player.eps = 0.0
     print(states)
-    return player, diffs, states, num_episodes, step
+    return player, diffs, states, num_episodes, step, TD_error
 
 def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
     player = TDAgent(eps=1.0)
+
+    TD_error = []
+
 
     copy_env = copy.deepcopy(state)
     diffs = {}  # track the last diffs, for funsies
@@ -460,6 +467,8 @@ def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
         q_max = player.qtable[(str(s1), str(max_action))]
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_max) - old_q)
+        curr_TD_error = (r + (gamma * q_max) - old_q)
+        TD_error.append(curr_TD_error)
         # print(s0, a0, r, old_q, new_q)
         player.qtable[(str(s0), str(a0))] = new_q
         diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
@@ -474,7 +483,7 @@ def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
         print(a0)
     player.eps = 0.0
     print(states)
-    return player, diffs, states, num_episodes, step
+    return player, diffs, states, num_episodes, step, TD_error
 
 
 def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: float=0.1) -> Dict[Tuple[Tuple[int], int], int]:
