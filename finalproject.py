@@ -6,6 +6,7 @@ from abc import abstractmethod, ABC
 from typing import Tuple, List, Dict, Any, Union
 from collections import defaultdict
 import random
+import pickle
 
 
 random.seed(42)
@@ -160,6 +161,7 @@ class Deterministic_Agent(RL_Agent):
         """Initialize the instance
         """
         super().__init__()
+        self.type = 'Deterministic_Agent'
 
     def get_action(self, state: Space.Space):
         """picks an action from the list of actions
@@ -220,6 +222,7 @@ class Deterministic_Agent(RL_Agent):
 class Soft_Deterministic_Agent(Deterministic_Agent):
     def __init__(self):
         super().__init__()
+        self.type = 'Soft_Deterministic_Agent'
         self.eps = 0.1
 
     def get_action(self, space: Space.Space):
@@ -230,7 +233,7 @@ class Soft_Deterministic_Agent(Deterministic_Agent):
             return action
 
         # otherwise, take the usual action
-        action = super.get_action(space)
+        action = self.get_action(space)
         return action
 
 
@@ -243,6 +246,7 @@ class RandomAgent(RL_Agent):
     def __init__(self):
         """Initialize the instance
         """
+        self.type = 'Random_Agent'
         super().__init__()
 
     def get_action(self, state):
@@ -287,8 +291,9 @@ class RandomAgent(RL_Agent):
 
 class TDAgent(RL_Agent):
     def __init__(self, eps=0.1):
+        self.type = 'TD_Agent'
         self.eps = eps
-        self.qtable = {'lambda': 0.13579}
+        self.qtable = defaultdict(lambda: 0.13579)
         self.novel = set()
         super().__init__()
 
@@ -309,7 +314,7 @@ class TDAgent(RL_Agent):
         return max_action
 
     def get_action(self, state: Space.Space) -> Tuple:
-        actions = super.get_possible_actions(state)
+        actions = self.get_possible_actions(state)
         # to ensure that we don't have some weird ordering bias.
         np.random.shuffle(actions)
         n = len(actions)
@@ -325,9 +330,82 @@ class TDAgent(RL_Agent):
         if np.random.random() < self.eps and n > 1:
             i = np.random.choice(range(n))
             action = actions[i]
-            return (action, p_max_action if action == max_action else p_other_action)
-        else:
-            return (max_action, p_max_action)
+            if action == max_action:
+                return action
+        return max_action
+
+    def get_prob_dist(self, env: Space.Space):
+        pass
+
+
+def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
+    player = TDAgent(eps=1.0)
+
+    copy_env = copy.deepcopy(state)
+    diffs = {}  # track the last diffs, for funsies
+    step = 0
+    env = state
+    # grab the first state and action
+    s0 = env
+    a0 = player.get_action(env)
+    # track the total states encountered
+    states = {str(s0)}
+    # track the number of episodes
+    num_episodes = 1
+
+    while step < maxsteps and max([abs(v) for v in diffs.values()] or [1.0]) > 0.01:
+        if num_episodes > 1000 and step % 5e5 == 0 and player.eps > 0.1:
+            # scale back the exploration
+            player.eps = player.eps / 2
+
+        old_q = player.qtable[(s0.__str__(), a0)]
+        r = reward(_set_state(s0, a0))
+
+        if env.steps_taken == env.iterations:
+            num_episodes += 1
+            # Need to take one step past game over so we can grab
+            # the reward from winning or losing.
+            # We can think of this like moving into the terminal state,
+            # which has value 0 for every action and only transitions to itself.
+            new_q = old_q + alpha * (r - old_q)
+            # print(s0, a0, r, old_q, new_q)
+            player.qtable[(s0.__str__(), a0)] = new_q
+            states.add(str(env))
+            env = copy.deepcopy(copy_env)
+            s0 = env
+            a0 = player.get_action(s0)
+            continue# type: ignore
+        # soft det. agent returns tuple
+        env._RL_agent_swap(a0[0][0], a0[0][1], a0[1][0], a0[1][1])
+        env._step_()
+        s1 = env
+
+        # Compute the average q value at the next state
+        all_actions = player.get_possible_actions(env)
+        # we don't want to divide by 1; if there are no free actions,
+        # treat noop as the only available action
+        n_actions = len(all_actions) or 1
+        # initalize with the max value
+        max_action = player.get_max_action(env)
+        q_avg = player.qtable[(s1.__str__(), max_action)] * (1 - player.eps)
+        for action in all_actions:
+            q_avg += player.qtable[(s1.__str__(), action)] * player.eps * (1.0 / n_actions)
+        # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
+        new_q = old_q + alpha * (r + (gamma * q_avg) - old_q)
+        # print(s0, a0, r, old_q, new_q)
+        player.qtable[(s0.__str__(), a0)] = new_q
+        diffs[(s0.__str__(), a0)] = (new_q - old_q) / (old_q or 1)
+        # shift
+        states.add(str(s1))
+
+        s0 = s1
+        # we didn't actually take a move, so grab the next action now
+        a0 = player.get_action(env)
+        step += 1
+        print(step, 'step')
+    player.eps = 0.0
+    print(states)
+    return player, diffs, states, num_episodes, step
 
 
 def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: float=0.1) -> Dict[Tuple[Tuple[int], int], int]:
@@ -341,6 +419,7 @@ def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: flo
     Returns:
         Dict[Tuple[Tuple[int], int], int]: [description]
     """
+    agent_type = policy.type
     value_dict = {}
     threshold = 0.1
 
@@ -379,13 +458,16 @@ def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: flo
         if delta < threshold:
             break
 
+    with open(f'{agent_type}_policy.pickle', 'wb') as handle:
+        pickle.dump(value_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
     return value_dict
 
 
 def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float=1.0) -> Tuple[RL_Agent, Dict[Tuple[Tuple[int], int], int]]:
     value_dict = {}
     threshold = 0.1
-
+    agent_type = policy.type
     for state in states:
         # terminal state
         if state.steps_taken == state.iterations:
@@ -431,6 +513,9 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
 
         if delta < threshold:
             break
+
+    with open(f'{agent_type}_value.pickle', 'wb') as handle:
+        pickle.dump(value_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return (policy, value_dict)
 
