@@ -507,41 +507,33 @@ if __name__ == '__main__':
     global QL4_output
 
     #______________PART 1__________________
-    #
-    # SARSA4_output, QL4_output = part1()
-    #
-    # SARSA4_player, SARSA4_diffs, SARSA4_states, SARSA4_num_episodes, SARSA4_step, SARSA4_TD_error = SARSA4_output
-    # filtered_SARSA4 = SARSA4_player.qtable
-    #
-    # # with open('SARSA4_Output.pickle', 'wb') as handle:
-    # #     pickle.dump(filtered_SARSA4, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    #
-    # with open('SARSA4_Output.json', 'w') as json_file:
-    #     json.dump(filtered_SARSA4, json_file)
-    #
-    # Q_player, Q_diffs, Q_states, Q_num_episodes, Q_step, Q_TD_error = QL4_output
-    # filtered_QL4 = Q_player.qtable
-    #
-    # # with open('QL4_Output.pickle', 'wb') as handle:
-    # #     pickle.dump(filtered_QL4, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    #
-    # with open('QL4_Output.json', 'w') as json_file:
-    #     json.dump(filtered_QL4, json_file)
-    #
-    # # _______________PART 2_____________________
-    #
-    # sarsa_agent, q_agent = part2()
-    #
-    # part3(sarsa_agent, q_agent)
+    
+    SARSA4_output, QL4_output = part1()
+    
+    SARSA4_player, SARSA4_diffs, SARSA4_states, SARSA4_num_episodes, SARSA4_step, SARSA4_TD_error = SARSA4_output
+    filtered_SARSA4 = SARSA4_player.qtable
+    
+    # with open('SARSA4_Output.pickle', 'wb') as handle:
+    #     pickle.dump(filtered_SARSA4, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    with open('SARSA4_Output.json', 'w') as json_file:
+        json.dump(filtered_SARSA4, json_file)
+    
+    Q_player, Q_diffs, Q_states, Q_num_episodes, Q_step, Q_TD_error = QL4_output
+    filtered_QL4 = Q_player.qtable
+    
+    # with open('QL4_Output.pickle', 'wb') as handle:
+    #     pickle.dump(filtered_QL4, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    with open('QL4_Output.json', 'w') as json_file:
+        json.dump(filtered_QL4, json_file)
+    
+    # _______________PART 2_____________________
+    
+    sarsa_agent, q_agent = part2()
+    
+    part3(sarsa_agent, q_agent)
 
-    # part4()
+    part4()
 
     # part3_test()
-
-
-
-
-
-    rand = Deterministic_Agent()
-    rand_sim = Simulation(10, 10, 30, False, 42, [])
-    rand_sim.play_sim_save_viz(rand, os.getcwd())

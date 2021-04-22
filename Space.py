@@ -55,10 +55,8 @@ class Space:
             col = []
             for j in range(self.cols):
                 agent = Agent.Agent(n, i, j)
-                # agent.INCUBATION_PERIOD = self.INCUBATION_PERIOD_DISTRIBUTION.pop(rd.randint(0, len(self.INCUBATION_PERIOD_DISTRIBUTION) - 1))
-                # agent.INFECTIVE_LENGTH = self.INFECTIVE_LENGTH_DISTRUBUTION.pop(rd.randint(0, len(self.INFECTIVE_LENGTH_DISTRUBUTION) - 1))
-                agent.INCUBATION_PERIOD = rd.randint(1, 3)
-                agent.INFECTIVE_LENGTH = rd.randint(1, 3)
+                agent.INCUBATION_PERIOD = self.INCUBATION_PERIOD_DISTRIBUTION.pop(rd.randint(0, len(self.INCUBATION_PERIOD_DISTRIBUTION) - 1))
+                agent.INFECTIVE_LENGTH = self.INFECTIVE_LENGTH_DISTRUBUTION.pop(rd.randint(0, len(self.INFECTIVE_LENGTH_DISTRUBUTION) - 1))
                 if n == self.initial_infected:
                     agent.infected = True
                     col.append(agent)
@@ -321,7 +319,6 @@ class Space:
                     curr_agent.infected = True
                     curr_agent.iteration_infected = self.curr_iterations
                     curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
-                    # (curr_agent.name + " got infected by " + curr_agent.agent_who_infected_me.name)
                     curr_agent.agent_who_infected_me.total_infected += 1
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.agent_who_infected_me.agents_infected_iterations.append((curr_agent, self.curr_iterations))
