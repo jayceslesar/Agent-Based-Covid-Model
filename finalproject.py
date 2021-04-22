@@ -172,11 +172,12 @@ class Deterministic_Agent(RL_Agent):
         Returns:
             actions (List): action of what swap to make that step of the simulation
         """
-        if state in self.action_to_take:
-            action = self.action_to_take[state]
-            return action
+        # if state in self.action_to_take:
+        #     action = self.action_to_take[state]
+        #     return action
 
         actions = self.get_possible_actions(state)
+        print("calling determine best action")
         action = self._determine_best_action(state, actions)
         return action
 
@@ -187,10 +188,11 @@ class Deterministic_Agent(RL_Agent):
             actions (list): possible actions to take
         """
         rewards = []
+        print("action set size is ", len(actions))
         for action in actions:
             copy_state = copy.deepcopy(state)
-            rewards.append(reward(_set_state(state, action)))
-
+            rewards.append(reward(_set_state(copy_state, action)))
+        print("finished actions")
         max_value = max(rewards)
         max_index = rewards.index(max_value)
         return actions[max_index]
@@ -307,7 +309,7 @@ class TDAgent(RL_Agent):
         i = np.random.choice(range(len(actions)))
         max_action = actions[i]
         for action in actions:
-            q = self.qtable[(state, action)]
+            q = self.qtable[str((str(state), str(action)))]
             if q > max_q:
                 max_q = q
                 max_action = action
@@ -338,7 +340,9 @@ class TDAgent(RL_Agent):
         pass
 
 
-def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
+def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
+
+    temp_TD = []
     TD_error = []
 
     player = TDAgent(eps=1.0)
@@ -351,7 +355,7 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
     s0 = env
     a0 = player.get_action(env)
     # track the total states encountered
-    states = {str(s0)}
+    states = {str(s0):1}
     # track the number of episodes
     num_episodes = 1
 
@@ -360,7 +364,7 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
             # scale back the exploration
             player.eps = player.eps / 2
 
-        old_q = player.qtable[(str(s0), str(a0))]
+        old_q = player.qtable[str((str(s0), str(a0)))]
         r = reward(_set_state(s0, a0))
 
         if env.steps_taken == env.iterations:
@@ -371,8 +375,11 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
             # which has value 0 for every action and only transitions to itself.
             new_q = old_q + alpha * (r - old_q)
             # print(s0, a0, r, old_q, new_q)
-            player.qtable[(str(s0), str(a0))] = new_q
-            states.add(str(env))
+            player.qtable[str((str(s0), str(a0)))] = new_q
+            if str(env) in states:
+                states[(str(env))] += 1
+            else:
+                states[str(env)] = 1
             env = copy.deepcopy(copy_env)
             s0 = env
             a0 = player.get_action(s0)
@@ -389,18 +396,25 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
         n_actions = len(all_actions) or 1
         # initalize with the max value
         max_action = player.get_max_action(env)
-        q_avg = player.qtable[(str(s1), str(max_action))] * (1 - player.eps)
+        q_avg = player.qtable[str((str(s1), str(max_action)))] * (1 - player.eps)
         for action in all_actions:
-            q_avg += player.qtable[(str(s1), action)] * player.eps * (1.0 / n_actions)
+            q_avg += player.qtable[str((str(s1), str(action)))] * player.eps * (1.0 / n_actions)
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_avg) - old_q)
         curr_TD_error = (r + (gamma * q_avg) - old_q)
-        TD_error.append(curr_TD_error)
+        temp_TD.append(curr_TD_error)
+        if len(temp_TD) > 50:
+            td_mean = np.mean(temp_TD)
+            temp_TD = []
+            TD_error.append(td_mean)
         # print(s0, a0, r, old_q, new_q)
-        player.qtable[(str(s0), str(a0))] = new_q
+        player.qtable[str((str(s0), str(a0)))] = new_q
         diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
         # shift
-        states.add(str(s1))
+        if str(s1) in states:
+            states[(str(s1))] += 1
+        else:
+            states[str(s1)] = 1
 
         s0 = s1
         # we didn't actually take a move, so grab the next action now
@@ -409,12 +423,13 @@ def expected_SARSA(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
         print(step, 'step')
         print(a0)
     player.eps = 0.0
-    print(states)
+    # print(states)
     return player, diffs, states, num_episodes, step, TD_error
 
-def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
+def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
     player = TDAgent(eps=1.0)
 
+    temp_TD = []
     TD_error = []
 
 
@@ -426,7 +441,7 @@ def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
     s0 = env
     a0 = player.get_action(env)
     # track the total states encountered
-    states = {str(s0)}
+    states = {str(s0):1}
     # track the number of episodes
     num_episodes = 1
 
@@ -435,7 +450,7 @@ def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
             # scale back the exploration
             player.eps = player.eps / 2
 
-        old_q = player.qtable[(str(s0), str(a0))]
+        old_q = player.qtable[str((str(s0), str(a0)))]
         r = reward(_set_state(s0, a0))
 
         if env.steps_taken == env.iterations:
@@ -446,8 +461,11 @@ def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
             # which has value 0 for every action and only transitions to itself.
             new_q = old_q + alpha * (r - old_q)
             # print(s0, a0, r, old_q, new_q)
-            player.qtable[(str(s0), str(a0))] = new_q
-            states.add(str(env))
+            player.qtable[str((str(s0), str(a0)))] = new_q
+            if str(env) in states:
+                states[str(env)] += 1
+            else:
+                states[(str(env))] = 1
             env = copy.deepcopy(copy_env)
             s0 = env
             a0 = player.get_action(s0)
@@ -464,16 +482,23 @@ def q_learning(state: Space.Space, maxsteps=300, gamma=0.5, alpha=0.1):
         n_actions = len(all_actions) or 1
         # initalize with the max value
         max_action = player.get_max_action(env)
-        q_max = player.qtable[(str(s1), str(max_action))]
+        q_max = player.qtable[str((str(s1), str(max_action)))]
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_max) - old_q)
         curr_TD_error = (r + (gamma * q_max) - old_q)
-        TD_error.append(curr_TD_error)
+        temp_TD.append(curr_TD_error)
+        if len(temp_TD) > 50:
+            mean = np.mean(temp_TD)
+            TD_error.append(mean)
+            temp_TD = []
         # print(s0, a0, r, old_q, new_q)
-        player.qtable[(str(s0), str(a0))] = new_q
+        player.qtable[str((str(s0), str(a0)))] = new_q
         diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
         # shift
-        states.add(str(s1))
+        if str(s1) in states:
+            states[str(s1)] += 1
+        else:
+            states[str(s1)] = 1
 
         s0 = s1
         # we didn't actually take a move, so grab the next action now
@@ -549,9 +574,9 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
     for state in states:
         # terminal state
         if state.steps_taken == state.iterations:
-            value_dict[(state, 1)] = 0
+            value_dict[(str(state), 1)] = 0
         else:
-            value_dict[(state, 1)] = 1
+            value_dict[(str(state), 1)] = 1
 
     counter = 0
     while True:
@@ -559,7 +584,7 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
 
         delta = 0
         for state in states:
-            v = value_dict[(state, 1)]
+            v = value_dict[(str(state), 1)]
             # set env to current state to get actions and probabilities for state
             actions_probabilities_state = policy.get_prob_dist(state)
 
@@ -570,24 +595,24 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
                 state_prime_and_probability = [(_set_state(state, action), 1)]
                 for state_prime, state_prime_probability in state_prime_and_probability:
                     r = reward(state_prime)
-                    if (state_prime, 1) in value_dict:
-                        value = value_dict[(state_prime, 1)]
+                    if (str(state_prime), 1) in value_dict:
+                        value = value_dict[(str(state_prime), 1)]
                     else:
-                        value_dict[(state_prime, 1)] = 1
+                        value_dict[(str(state_prime), 1)] = 1
                         value = 1
                     action_sum_pair.append((action, (state_prime_probability * (r + (discount * value)))))
 
             if len(action_sum_pair) > 0:
                 max_action_sum_pair = max(action_sum_pair, key=lambda item: item[1])
-                value_dict[(state, 1)] = max_action_sum_pair[1]
+                value_dict[(str(state), 1)] = max_action_sum_pair[1]
 
                 for action, sum in action_sum_pair:
                     if action == max_action_sum_pair[0]:
-                        policy.prob_dist[(state, action)] = 1
+                        policy.prob_dist[(str(state), action)] = 1
                     else:
-                        policy.prob_dist[(state, action)] = 0
+                        policy.prob_dist[(str(state), action)] = 0
 
-            delta = max(delta, abs(v - value_dict[(state, 1)]))
+            delta = max(delta, abs(v - value_dict[(str(state), 1)]))
 
         if delta < threshold:
             break
