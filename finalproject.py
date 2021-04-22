@@ -172,46 +172,25 @@ class Deterministic_Agent(RL_Agent):
         Returns:
             actions (List): action of what swap to make that step of the simulation
         """
-        # if state in self.action_to_take:
-        #     action = self.action_to_take[state]
-        #     return action
+        for row in range(state.rows):
+            for col in range(state.cols):
+                if state.grid[row][col].infected:
+                    swap_from = (row, col)
+                    safe_spaces = []
+                    distances = []
+                    for row1 in range(state.rows):
+                        for col1 in range(state.cols):
+                            if state.grid[row][col].untouched or state.grid[row][col].recovered:
+                                safe_spaces.append((row1, col1))
+                                distances.append(state._calc_distance_(0, 0, row1, col1))
+                    try:
+                        swap_to = safe_spaces[distances.index(min(distances))]
+                        return (swap_from, swap_to)
+                    except:
+                        return ((0, 0), (0, 0))
+        return ((0, 0), (0, 0))
 
-        actions = self.get_possible_actions(state)
-        print("calling determine best action")
-        action = self._determine_best_action(state, actions)
-        return action
 
-    def _determine_best_action(self, state: Space.Space, actions: list):
-        """Determine best action
-
-        Args:
-            actions (list): possible actions to take
-        """
-        rewards = []
-        print("action set size is ", len(actions))
-        for action in actions:
-            copy_state = copy.deepcopy(state)
-            rewards.append(reward(_set_state(copy_state, action)))
-        print("finished actions")
-        max_value = max(rewards)
-        max_index = rewards.index(max_value)
-        return actions[max_index]
-
-    def _determine_best_action_quicker(self, state: Space.Space, actions: list):
-        """Corners infected people by swapping
-
-        Args:
-            actions (list): possible actions to take
-        """
-        rewards = []
-        print("action set size is ", len(actions))
-        for action in actions:
-            copy_state = copy.deepcopy(state)
-            rewards.append(reward(_set_state(copy_state, action)))
-        print("finished actions")
-        max_value = max(rewards)
-        max_index = rewards.index(max_value)
-        return actions[max_index]
 
     def get_prob_dist(self, state: Space.Space) -> List[Tuple[Tuple[int, int, int], float]]:
         """Generate the probability distribution for the set of actions

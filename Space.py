@@ -313,11 +313,11 @@ class Space:
                 # current agent
                 if curr_agent.days_pre_exposed > 2:
                     curr_agent.exposed = True
-                elif curr_agent.infected:
+                if curr_agent.infected:
                     curr_agent.days_infected += 1
-                elif curr_agent.exposed:
+                if curr_agent.exposed:
                     curr_agent.days_exposed += 1
-                elif curr_agent.days_exposed > curr_agent.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
+                if curr_agent.days_exposed > curr_agent.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
                     curr_agent.infected = True
                     curr_agent.iteration_infected = self.curr_iterations
                     curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
@@ -326,7 +326,7 @@ class Space:
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.agent_who_infected_me.agents_infected_iterations.append((curr_agent, self.curr_iterations))
                     curr_agent.exposed = False
-                elif curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH and curr_agent.infected:
+                if curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH and curr_agent.infected:
                     curr_agent.infected = False
                     curr_agent.recovered = True
                     curr_agent.iteration_recovered = self.curr_iterations

@@ -542,6 +542,6 @@ if __name__ == '__main__':
 
 
 
-    rand = RandomAgent()
+    rand = Deterministic_Agent()
     rand_sim = Simulation(10, 10, 30, False, 42, [])
     rand_sim.play_sim_save_viz(rand, os.getcwd())
