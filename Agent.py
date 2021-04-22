@@ -14,8 +14,10 @@ class Agent:
         self.number = number
         self.row = row
         self.col = col
+        self.days_pre_exposed = 0
 
         # tracking variables for run specific decisions
+        self.pre_exposed = False
         self.untouched = True
         self.infected = False
         self.recovered = False

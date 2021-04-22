@@ -182,6 +182,22 @@ class Deterministic_Agent(RL_Agent):
         return action
 
     def _determine_best_action(self, state: Space.Space, actions: list):
+        """Determine best action
+
+        Args:
+            actions (list): possible actions to take
+        """
+        rewards = []
+        print("action set size is ", len(actions))
+        for action in actions:
+            copy_state = copy.deepcopy(state)
+            rewards.append(reward(_set_state(copy_state, action)))
+        print("finished actions")
+        max_value = max(rewards)
+        max_index = rewards.index(max_value)
+        return actions[max_index]
+
+    def _determine_best_action_quicker(self, state: Space.Space, actions: list):
         """Corners infected people by swapping
 
         Args:

@@ -534,7 +534,7 @@ if __name__ == '__main__':
     #
     # part3(sarsa_agent, q_agent)
 
-    part4()
+    # part4()
 
     # part3_test()
 
@@ -542,6 +542,6 @@ if __name__ == '__main__':
 
 
 
-
-
-    # rand_sim.play_sim_save_viz(rand, os.getcwd())
+    rand = RandomAgent()
+    rand_sim = Simulation(10, 10, 30, False, 42, [])
+    rand_sim.play_sim_save_viz(rand, os.getcwd())

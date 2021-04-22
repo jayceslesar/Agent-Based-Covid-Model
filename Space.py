@@ -284,13 +284,15 @@ class Space:
                         # check against each agent
                         if agent.infected and not agent.recovered:
                             if agent.neighborhood_size >= self.distance_dict[agent.number][curr_agent.number]:
-                                if curr_agent.number != agent.number and not curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered:
+                                if curr_agent.number != agent.number and not curr_agent.exposed and not curr_agent.infected and not curr_agent.recovered and not curr_agent.pre_exposed:
                                     curr_agent.agent_who_exposed_me = agent
                                     # print(curr_agent.name + " got exposed by " + curr_agent.agent_who_exposed_me.name)
-                                    curr_agent.exposed = True
+                                    curr_agent.days_pre_exposed += 1
                                     curr_agent.untouched = False
                                     agent.num_infected += 1
                                     self.curr_number_of_infections += 1
+                            else:
+                                curr_agent.days_pre_exposed -= 1
                         new_grid[k][l] = curr_agent
         self.grid = new_grid
 
@@ -309,11 +311,13 @@ class Space:
             for j in range(self.cols):
                 curr_agent = self.grid[i][j]
                 # current agent
-                if curr_agent.infected:
+                if curr_agent.days_pre_exposed > 2:
+                    curr_agent.exposed = True
+                elif curr_agent.infected:
                     curr_agent.days_infected += 1
-                if curr_agent.exposed:
+                elif curr_agent.exposed:
                     curr_agent.days_exposed += 1
-                if curr_agent.days_exposed > curr_agent.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
+                elif curr_agent.days_exposed > curr_agent.INCUBATION_PERIOD and not curr_agent.infected and not curr_agent.recovered:
                     curr_agent.infected = True
                     curr_agent.iteration_infected = self.curr_iterations
                     curr_agent.agent_who_infected_me = curr_agent.agent_who_exposed_me
@@ -322,7 +326,7 @@ class Space:
                     curr_agent.agent_who_infected_me.agents_infected.append(curr_agent)
                     curr_agent.agent_who_infected_me.agents_infected_iterations.append((curr_agent, self.curr_iterations))
                     curr_agent.exposed = False
-                if curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH and curr_agent.infected:
+                elif curr_agent.days_infected > curr_agent.INFECTIVE_LENGTH and curr_agent.infected:
                     curr_agent.infected = False
                     curr_agent.recovered = True
                     curr_agent.iteration_recovered = self.curr_iterations
