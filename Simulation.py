@@ -16,7 +16,7 @@ import Graph
 import SocialNetwork as sn
 from multiprocessing import Process
 import SocialNetworkGrapher as sng
-from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, value_iteration, RandomAgent, Deterministic_Agent, Soft_Deterministic_Agent, RL_Agent, expected_SARSA, q_learning
+from finalproject import enumerate_states, get_next_states, reward_generator, policy_evaluation, value_iteration, RandomAgent, Deterministic_Agent, Soft_Deterministic_Agent, RL_Agent, TDAgent, expected_SARSA, q_learning
 import copy
 import pickle
 import numpy as np
@@ -134,17 +134,17 @@ PART 1:
 '''
 def part1():
     # ___________Setting Parameters for Value iteration Board ___________________
-    four_by_four_space = Space.Space(4, 4, 5, False, 42)
+    four_by_four_space = Space.Space(2, 2, 4, False, 42)
     copy_env = copy.deepcopy(four_by_four_space)
-    print("_____________Running enumerate states for a 4 by 4 grid__________________")
+    print("_____________Running enumerate states for a 3 by 3 grid__________________")
     states = enumerate_states(copy_env)
     print("_____________Enumerating States Finished______________________")
 
     # pickling states
-    with open(f'states_{4}_{4}_{5}.pickle', 'wb') as handle:
+    with open(f'states_{2}_{2}_{4}.pickle', 'wb') as handle:
         pickle.dump(states, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print("______________Running Value iteration for a 4 by 4 grid....________________________")
+    print("______________Running Value iteration for a 3 by 3 grid....________________________")
     val_iter_rand_agent = RandomAgent()
     rand_agent_value_iteration = value_iteration(states, val_iter_rand_agent)
     print("______________Finished Value iteration________________________")
@@ -153,9 +153,9 @@ def part1():
     with open(f'value_iteration_output.pickle', 'wb') as handle:
         pickle.dump(rand_agent_value_iteration, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print("____________Expected SARSA for a 4 by 4 grid_______________")
+    print("____________Expected SARSA for a 3 by 3 grid_______________")
 
-    print("EXPECTED SARSA TRAINING RUNNING (4X4)...")
+    print("EXPECTED SARSA TRAINING RUNNING (3X3)...")
     copy_env = copy.deepcopy(four_by_four_space)
     SARSA4_Output = expected_SARSA(copy_env)
     print("EXPECTED SARSA TRAINING FINISHED!")
@@ -164,9 +164,9 @@ def part1():
     # with open(f'SARSA4_Output', 'wb') as handle:
     #     pickle.dump(SARSA4_Output, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-    print("____________Q-Learning for a 4 by 4 grid_______________")
+    print("____________Q-Learning for a 3 by 3 grid_______________")
 
-    print("Q-LEARNING TRAINING RUNNING (4X4)...")
+    print("Q-LEARNING TRAINING RUNNING (3X3)...")
     copy_env = copy.deepcopy(four_by_four_space)
     QL4_Output = q_learning(copy_env)
     print("Q-LEARNING TRAINING FINISHED!")
@@ -455,7 +455,7 @@ def part3_test():
     # -----------Setting Board Parameters for Training and Baseline-------------------
     rows = 10
     cols = 10
-    num_steps = 20
+    num_steps = 50
     output = False
     seed = 42
     times = 100
@@ -502,38 +502,103 @@ def part3_test():
     with open('agentscores.json', 'w') as json_file:
         json.dump(agents_scores_dict, json_file)
 
+def unpickle(filename):
+    pickle_off = open(filename, "rb")
+    emp = pickle.load(pickle_off)
+    return emp
+
+def unjson(filename):
+    # Opening JSON file
+    f = open(filename, )
+
+    # returns JSON object as
+    # a dictionary
+    data = json.load(f)
+
+    # Closing file
+    f.close()
+
+    return data
+
 if __name__ == '__main__':
     global SARSA_output
     global QL4_output
 
-    #______________PART 1__________________
-    
-    SARSA4_output, QL4_output = part1()
-    
-    SARSA4_player, SARSA4_diffs, SARSA4_states, SARSA4_num_episodes, SARSA4_step, SARSA4_TD_error = SARSA4_output
-    filtered_SARSA4 = SARSA4_player.qtable
-    
-    # with open('SARSA4_Output.pickle', 'wb') as handle:
-    #     pickle.dump(filtered_SARSA4, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    with open('SARSA4_Output.json', 'w') as json_file:
-        json.dump(filtered_SARSA4, json_file)
-    
-    Q_player, Q_diffs, Q_states, Q_num_episodes, Q_step, Q_TD_error = QL4_output
-    filtered_QL4 = Q_player.qtable
-    
-    # with open('QL4_Output.pickle', 'wb') as handle:
-    #     pickle.dump(filtered_QL4, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    
-    with open('QL4_Output.json', 'w') as json_file:
-        json.dump(filtered_QL4, json_file)
-    
+    # # #______________PART 1__________________
+    # #
+    # SARSA4_output, QL4_output = part1()
+    #
+    # SARSA4_player, SARSA4_diffs, SARSA4_states, SARSA4_num_episodes, SARSA4_step, SARSA4_TD_error = SARSA4_output
+    # filtered_SARSA4 = SARSA4_player.qtable
+    #
+    # # with open('SARSA4_Output.pickle', 'wb') as handle:
+    # #     pickle.dump(filtered_SARSA4, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #
+    # with open('SARSA4_Output.json', 'w') as json_file:
+    #     json.dump(filtered_SARSA4, json_file)
+    #
+    # Q_player, Q_diffs, Q_states, Q_num_episodes, Q_step, Q_TD_error = QL4_output
+    # filtered_QL4 = Q_player.qtable
+    #
+    # # with open('QL4_Output.pickle', 'wb') as handle:
+    # #     pickle.dump(filtered_QL4, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    #
+    # with open('QL4_Output.json', 'w') as json_file:
+    #     json.dump(filtered_QL4, json_file)
+    #
+    # # UNPACKING FILES:
+    # print("________________UNPACKING FILES_________________")
+    # value_output = unpickle("value_iteration_output.pickle")
+    # ql_qtable = unjson("QL4_Output.json")
+    # sarsa_qtable = unjson("SARSA4_Output.json")
+    #
+    # print("FINISHED UNPACKING")
+    #
+    # value_dict = value_output[1]
+    #
+    # print("INITIALIZING PLAYERS")
+    #
+    # q_player = TDAgent()
+    # q_player.eps = 0.0
+    # for key in ql_qtable:
+    #     q_player.qtable[key] = ql_qtable[key]
+    #     print(key)
+    #
+    # sarsa_player = TDAgent()
+    # sarsa_player.qtable = sarsa_qtable
+    # sarsa_player.eps = 0.0
+    #
+    # for key in value_dict:
+    #     print("key is ", key)
+    #     action = q_player.get_action_str(key, 2, 2)
+    #     print("action is ", action)
+    #     q_key = str((key, str(action)))
+    #     q_val = q_player.qtable[q_key]
+    #     val = value_dict[key]
+    #     print("qval is ", q_val)
+    #     print("val is ", val)
+    #     print("difference is ", q_val - val)
+
+
+
+
+
     # _______________PART 2_____________________
-    
-    sarsa_agent, q_agent = part2()
-    
-    part3(sarsa_agent, q_agent)
 
-    part4()
+    # sarsa_agent, q_agent = part2()
+    #
+    # sarsa_qtable = sarsa_agent.qtable
+    # ql_qtable = q_agent.qtable
+    #
+    # with open('trained_sarsa_agent.json', 'w') as json_file:
+    #     json.dump(sarsa_qtable, json_file)
+    #
+    # with open('trained_ql_agent.json', 'w') as json_file:
+    #     json.dump(ql_qtable, json_file)
+    #
+    #
+    # part3(sarsa_agent, q_agent)
+    #
+    # part4()
 
-    # part3_test()
+    part3_test()
