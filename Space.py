@@ -309,7 +309,7 @@ class Space:
             for j in range(self.cols):
                 curr_agent = self.grid[i][j]
                 # current agent
-                if curr_agent.days_pre_exposed > 2:
+                if curr_agent.days_pre_exposed > 1:
                     curr_agent.exposed = True
                 if curr_agent.infected:
                     curr_agent.days_infected += 1

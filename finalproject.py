@@ -14,10 +14,8 @@ random.seed(42)
 
 def enumerate_states(space: Space.Space) -> list:
     """Enumerates the states of a Space object
-
     Args:
         space (Space.Space): initial representation of state
-
     Returns:
         list: all states that could be generated from one or no swaps per step
     """
@@ -35,8 +33,43 @@ def enumerate_states(space: Space.Space) -> list:
         states += next_states
         current_states = next_states
         space._step_()
+        print("We are on step ", space.steps_taken)
 
     return states
+
+def enumerate_states_str(space: Space.Space) -> list:
+    """Enumerates the states of a Space object
+
+    Args:
+        space (Space.Space): initial representation of state
+
+    Returns:
+        list: all states that could be generated from one or no swaps per step
+    """
+    start_board = str(space)
+    start_step = str(space.steps_taken)
+    start_tup = str((start_board, start_step))
+    states = {start_tup}
+    current_states = []
+    current_states.append(space)
+
+    while space.steps_taken < space.iterations:
+        next_states = []
+        for _states in current_states:
+            next_states += get_next_states(_states)
+            copy_state = copy.deepcopy(_states)
+            copy_state._step_()
+            next_states.append(copy_state)
+        for states_to_add in next_states:
+            temp_tup = (str(states_to_add), str(states_to_add.steps_taken))
+            states.add(str(temp_tup))
+        current_states = next_states
+        print("Size of Next States is : ", len(next_states))
+        space._step_()
+        print(space.steps_taken, " steps enumerated")
+
+    return_states = list(states)
+    return return_states
 
 
 def get_next_states(space: Space.Space) -> Space.Space:
@@ -150,6 +183,15 @@ class RL_Agent(ABC):
         actions = list(itertools.combinations(actions, 2))
         return actions
 
+    def get_possible_actions_str(self, rows, cols):
+        actions = []
+        for row in range(rows):
+            for col in range(cols):
+                actions.append((row, col))
+        # find all unique permutations of swaps
+        actions = list(itertools.combinations(actions, 2))
+        return actions
+
 
 class Deterministic_Agent(RL_Agent):
     """RandomAgent class for the covid simulation game
@@ -207,10 +249,11 @@ class Deterministic_Agent(RL_Agent):
         return_probs = []
 
         for action in actions:
-            if (state, action) in self.prob_dist:
-                return_probs.append((action, self.prob_dist[(state, action)]))
+            state_str = str((str(state), str(state.steps_taken)))
+            if str((state_str, str(action))) in self.prob_dist:
+                return_probs.append((action, self.prob_dist[str((state_str, str(action)))]))
             else:
-                self.prob_dist[(state, action)] = probability
+                self.prob_dist[str((state_str, str(action)))] = probability
                 return_probs.append((action, probability))
 
         return return_probs
@@ -230,8 +273,23 @@ class Soft_Deterministic_Agent(Deterministic_Agent):
             return action
 
         # otherwise, take the usual action
-        action = self.get_action(space)
-        return action
+        for row in range(space.rows):
+            for col in range(space.cols):
+                if space.grid[row][col].infected:
+                    swap_from = (row, col)
+                    safe_spaces = []
+                    distances = []
+                    for row1 in range(space.rows):
+                        for col1 in range(space.cols):
+                            if space.grid[row][col].untouched or space.grid[row][col].recovered:
+                                safe_spaces.append((row1, col1))
+                                distances.append(space._calc_distance_(0, 0, row1, col1))
+                    try:
+                        swap_to = safe_spaces[distances.index(min(distances))]
+                        return (swap_from, swap_to)
+                    except:
+                        return ((0, 0), (0, 0))
+        return ((0, 0), (0, 0))
 
 
 class RandomAgent(RL_Agent):
@@ -255,8 +313,8 @@ class RandomAgent(RL_Agent):
         Returns:
             actions (List): action of what swap to make that step of the simulation
         """
-        if state in self.action_to_take:
-            action = self.action_to_take[state]
+        if str((str(state), str(state.steps_taken))) in self.action_to_take:
+            action = self.action_to_take[str((str(state), str(state.steps_taken)))]
             return action
 
         action = random.choice(self.get_possible_actions(state))
@@ -273,14 +331,15 @@ class RandomAgent(RL_Agent):
         """
         actions = self.get_possible_actions(state)
         num_actions = len(actions)
-        probability = float(1/num_actions)
+        probability = float(1 / num_actions)
         return_probs = []
 
         for action in actions:
-            if (state, action) in self.prob_dist:
-                return_probs.append((action, self.prob_dist[(state, action)]))
+            state_str = str((str(state), str(state.steps_taken)))
+            if str((state_str, str(action))) in self.prob_dist:
+                return_probs.append((action, self.prob_dist[str((state_str, str(action)))]))
             else:
-                self.prob_dist[(state, action)] = probability
+                self.prob_dist[str((state_str, str(action)))] = probability
                 return_probs.append((action, probability))
 
         return return_probs
@@ -294,6 +353,21 @@ class TDAgent(RL_Agent):
         self.novel = set()
         super().__init__()
 
+    def get_action_str(self, state, rows, cols):
+        actions = self.get_possible_actions_str(rows, cols)
+        max_q = -1e7
+        # initialize with a random action
+        if len(actions) == 0:
+            return None
+        i = np.random.choice(range(len(actions)))
+        max_action = actions[i]
+        for action in actions:
+            q = self.qtable[str((state, str(action)))]
+            if q > max_q:
+                max_q = q
+                max_action = action
+        return max_action
+
     def get_max_action(self, state: Space.Space):
         """Returns the action that has the max q-value"""
         actions = self.get_possible_actions(state)
@@ -304,7 +378,8 @@ class TDAgent(RL_Agent):
         i = np.random.choice(range(len(actions)))
         max_action = actions[i]
         for action in actions:
-            q = self.qtable[str((str(state), str(action)))]
+            state_str = str((str(state), str(state.steps_taken)))
+            q = self.qtable[str((state_str, str(action)))]
             if q > max_q:
                 max_q = q
                 max_action = action
@@ -350,7 +425,8 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
     s0 = env
     a0 = player.get_action(env)
     # track the total states encountered
-    states = {str(s0):1}
+    str_state = str((str(s0), str(s0.steps_taken)))
+    states = {str_state:1}
     # track the number of episodes
     num_episodes = 1
 
@@ -359,7 +435,10 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             # scale back the exploration
             player.eps = player.eps / 2
 
-        old_q = player.qtable[str((str(s0), str(a0)))]
+        old_q_lookup_p1 = str((str(s0),str(s0.steps_taken)))
+        old_q_lookup_p2 = str(a0)
+        old_q_lookup = str((old_q_lookup_p1,old_q_lookup_p2))
+        old_q = player.qtable[old_q_lookup]
         r = reward(_set_state(s0, a0))
 
         if env.steps_taken == env.iterations:
@@ -370,11 +449,14 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             # which has value 0 for every action and only transitions to itself.
             new_q = old_q + alpha * (r - old_q)
             # print(s0, a0, r, old_q, new_q)
-            player.qtable[str((str(s0), str(a0)))] = new_q
-            if str(env) in states:
-                states[(str(env))] += 1
+            new_q_lookup_p1 = str((str(s0), str(s0.steps_taken)))
+            new_q_lookup_p2 = str(a0)
+            new_q_lookup = str((new_q_lookup_p1, new_q_lookup_p2))
+            player.qtable[new_q_lookup] = new_q
+            if str((str(env), str(env.steps_taken))) in states:
+                states[str((str(env), str(env.steps_taken)))] += 1
             else:
-                states[str(env)] = 1
+                states[str((str(env), str(env.steps_taken)))] = 1
             env = copy.deepcopy(copy_env)
             s0 = env
             a0 = player.get_action(s0)
@@ -391,9 +473,10 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
         n_actions = len(all_actions) or 1
         # initalize with the max value
         max_action = player.get_max_action(env)
-        q_avg = player.qtable[str((str(s1), str(max_action)))] * (1 - player.eps)
+        q_lookup_state = str((str(s1), str(s1.steps_taken)))
+        q_avg = player.qtable[str((q_lookup_state, str(max_action)))] * (1 - player.eps)
         for action in all_actions:
-            q_avg += player.qtable[str((str(s1), str(action)))] * player.eps * (1.0 / n_actions)
+            q_avg += player.qtable[str((q_lookup_state, str(action)))] * player.eps * (1.0 / n_actions)
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_avg) - old_q)
         curr_TD_error = (r + (gamma * q_avg) - old_q)
@@ -403,13 +486,14 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             temp_TD = []
             TD_error.append(td_mean)
         # print(s0, a0, r, old_q, new_q)
-        player.qtable[str((str(s0), str(a0)))] = new_q
-        diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
+        q_lookup_state = str((str(s0), str(s0.steps_taken)))
+        player.qtable[str((q_lookup_state, str(a0)))] = new_q
+        diffs[(q_lookup_state, str(a0))] = (new_q - old_q) / (old_q or 1)
         # shift
         if str(s1) in states:
-            states[(str(s1))] += 1
+            states[str((str(s1), str(s1.steps_taken)))] += 1
         else:
-            states[str(s1)] = 1
+            states[str((str(s1), str(s1.steps_taken)))] = 1
 
         s0 = s1
         # we didn't actually take a move, so grab the next action now
@@ -422,11 +506,10 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
     return player, diffs, states, num_episodes, step, TD_error
 
 def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
-    player = TDAgent(eps=1.0)
-
     temp_TD = []
     TD_error = []
 
+    player = TDAgent(eps=1.0)
 
     copy_env = copy.deepcopy(state)
     diffs = {}  # track the last diffs, for funsies
@@ -436,7 +519,8 @@ def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
     s0 = env
     a0 = player.get_action(env)
     # track the total states encountered
-    states = {str(s0):1}
+    str_state = str((str(s0), str(s0.steps_taken)))
+    states = {str_state:1}
     # track the number of episodes
     num_episodes = 1
 
@@ -445,7 +529,10 @@ def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             # scale back the exploration
             player.eps = player.eps / 2
 
-        old_q = player.qtable[str((str(s0), str(a0)))]
+        old_q_lookup_p1 = str((str(s0),str(s0.steps_taken)))
+        old_q_lookup_p2 = str(a0)
+        old_q_lookup = str((old_q_lookup_p1,old_q_lookup_p2))
+        old_q = player.qtable[old_q_lookup]
         r = reward(_set_state(s0, a0))
 
         if env.steps_taken == env.iterations:
@@ -456,11 +543,14 @@ def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             # which has value 0 for every action and only transitions to itself.
             new_q = old_q + alpha * (r - old_q)
             # print(s0, a0, r, old_q, new_q)
-            player.qtable[str((str(s0), str(a0)))] = new_q
-            if str(env) in states:
-                states[str(env)] += 1
+            new_q_lookup_p1 = str((str(s0), str(s0.steps_taken)))
+            new_q_lookup_p2 = str(a0)
+            new_q_lookup = str((new_q_lookup_p1, new_q_lookup_p2))
+            player.qtable[new_q_lookup] = new_q
+            if str((str(env), str(env.steps_taken))) in states:
+                states[str((str(env), str(env.steps_taken)))] += 1
             else:
-                states[(str(env))] = 1
+                states[str((str(env), str(env.steps_taken)))] = 1
             env = copy.deepcopy(copy_env)
             s0 = env
             a0 = player.get_action(s0)
@@ -475,25 +565,28 @@ def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
         # we don't want to divide by 1; if there are no free actions,
         # treat noop as the only available action
         n_actions = len(all_actions) or 1
+
         # initalize with the max value
         max_action = player.get_max_action(env)
-        q_max = player.qtable[str((str(s1), str(max_action)))]
+        q_lookup_state = str((str(s1), str(s1.steps_taken)))
+        q_max = player.qtable[str((q_lookup_state, str(max_action)))]
         # print('{0} + {1}[{2} + {3} - {0}]'.format(old_q, alpha, r, q_avg))
         new_q = old_q + alpha * (r + (gamma * q_max) - old_q)
         curr_TD_error = (r + (gamma * q_max) - old_q)
         temp_TD.append(curr_TD_error)
         if len(temp_TD) > 50:
-            mean = np.mean(temp_TD)
-            TD_error.append(mean)
+            td_mean = np.mean(temp_TD)
             temp_TD = []
+            TD_error.append(td_mean)
         # print(s0, a0, r, old_q, new_q)
-        player.qtable[str((str(s0), str(a0)))] = new_q
-        diffs[(str(s0), str(a0))] = (new_q - old_q) / (old_q or 1)
+        q_lookup_state = str((str(s0), str(s0.steps_taken)))
+        player.qtable[str((q_lookup_state, str(a0)))] = new_q
+        diffs[(q_lookup_state, str(a0))] = (new_q - old_q) / (old_q or 1)
         # shift
         if str(s1) in states:
-            states[str(s1)] += 1
+            states[str((str(s1), str(s1.steps_taken)))] += 1
         else:
-            states[str(s1)] = 1
+            states[str((str(s1), str(s1.steps_taken)))] = 1
 
         s0 = s1
         # we didn't actually take a move, so grab the next action now
@@ -562,16 +655,18 @@ def policy_evaluation(states: List[Space.Space], policy: RL_Agent, discount: flo
     return value_dict
 
 
-def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float=1.0) -> Tuple[RL_Agent, Dict[Tuple[Tuple[int], int], int]]:
+def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float=0.5) -> Tuple[RL_Agent, Dict[Tuple[Tuple[int], int], int]]:
     value_dict = {}
     threshold = 0.1
     agent_type = policy.type
     for state in states:
         # terminal state
         if state.steps_taken == state.iterations:
-            value_dict[(str(state), 1)] = 0
+            state_str = str((str(state), str(state.steps_taken)))
+            value_dict[(state_str)] = 0
         else:
-            value_dict[(str(state), 1)] = 1
+            state_str = str((str(state), str(state.steps_taken)))
+            value_dict[(state_str)] = 1
 
     counter = 0
     while True:
@@ -579,9 +674,12 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
 
         delta = 0
         for state in states:
-            v = value_dict[(str(state), 1)]
+            state_str = str((str(state), str(state.steps_taken)))
+            v = value_dict[(state_str)]
             # set env to current state to get actions and probabilities for state
             actions_probabilities_state = policy.get_prob_dist(state)
+
+            print('flag 1')
 
             action_sum_pair = []
             for action, prob in actions_probabilities_state:
@@ -590,27 +688,31 @@ def value_iteration(states: List[Space.Space], policy: RL_Agent, discount: float
                 state_prime_and_probability = [(_set_state(state, action), 1)]
                 for state_prime, state_prime_probability in state_prime_and_probability:
                     r = reward(state_prime)
-                    if (str(state_prime), 1) in value_dict:
-                        value = value_dict[(str(state_prime), 1)]
+                    state_prime_str = str((str(state_prime), str(state_prime.steps_taken)))
+                    if (state_prime_str) in value_dict:
+                        value = value_dict[(state_prime_str)]
                     else:
-                        value_dict[(str(state_prime), 1)] = 1
+                        value_dict[(state_prime_str)] = 1
                         value = 1
                     action_sum_pair.append((action, (state_prime_probability * (r + (discount * value)))))
-
+            print('flag 2')
             if len(action_sum_pair) > 0:
                 max_action_sum_pair = max(action_sum_pair, key=lambda item: item[1])
-                value_dict[(str(state), 1)] = max_action_sum_pair[1]
+                state_str = str((str(state), str(state.steps_taken)))
+                value_dict[(state_str)] = max_action_sum_pair[1]
 
                 for action, sum in action_sum_pair:
                     if action == max_action_sum_pair[0]:
-                        policy.prob_dist[(str(state), action)] = 1
+                        policy.prob_dist[(state_str, action)] = 1
                     else:
-                        policy.prob_dist[(str(state), action)] = 0
+                        policy.prob_dist[(state_str, action)] = 0
+            state_str = str((str(state), str(state.steps_taken)))
+            delta = max(delta, abs(v - value_dict[(state_str)]))
 
-            delta = max(delta, abs(v - value_dict[(str(state), 1)]))
-
+        print("delta is ", delta)
         if delta < threshold:
             break
+        print(counter)
 
     with open(f'{agent_type}_value.pickle', 'wb') as handle:
         pickle.dump(value_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
