@@ -290,7 +290,8 @@ class Space:
                                     agent.num_infected += 1
                                     self.curr_number_of_infections += 1
                             else:
-                                curr_agent.days_pre_exposed -= 1
+                                if curr_agent.days_pre_exposed > 0:
+                                    curr_agent.days_pre_exposed -= 1
                         new_grid[k][l] = curr_agent
         self.grid = new_grid
 
@@ -309,7 +310,7 @@ class Space:
             for j in range(self.cols):
                 curr_agent = self.grid[i][j]
                 # current agent
-                if curr_agent.days_pre_exposed > 1:
+                if curr_agent.days_pre_exposed > 2:
                     curr_agent.exposed = True
                 if curr_agent.infected:
                     curr_agent.days_infected += 1

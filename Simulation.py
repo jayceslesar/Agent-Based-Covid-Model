@@ -107,8 +107,8 @@ class Simulation:
 
         img, *imgs = [Image.open(f) for f in stills]
         img.save(fp=os.path.join(sc_path, f'{agent.type}.gif'), format='GIF', append_images=imgs, save_all=True, duration=20, loop=0)
-        for im in stills:
-            os.remove(im)
+        # for im in stills:
+        #     os.remove(im)
 
     def screenshot(self, screen, path, step):
         title = "step" + str(step)
@@ -187,11 +187,11 @@ def part2():
     # -----------Setting Board Parameters for Training and Baseline-------------------
     rows = 10
     cols = 10
-    num_steps = 20
+    num_steps = 50
     output = False
     seed = 42
     # -------------Creating Board-------------------------
-    test_space = Space.Space(10, 10, 30, output, seed)
+    test_space = Space.Space(10, 10, 50, output, seed)
 
     # ------------------Training TD Agent with expected SARSA--------------------
     print("____________Expected SARSA_______________")
@@ -244,7 +244,7 @@ def part3(sarsa_agent, q_agent):
     # -----------Setting Board Parameters for Training and Baseline-------------------
     rows = 10
     cols = 10
-    num_steps = 20
+    num_steps = 50
     output = False
     seed = 42
     times = 100
@@ -276,16 +276,16 @@ def part3(sarsa_agent, q_agent):
     agents_scores_dict['soft_mean'] = soft_mean
     agents_scores_dict['soft_std'] = soft_std
 
-    # # ______________RUN PLAY GAME FOR DETERMINISTIC_______________
-    # det_sim = Simulation(rows, cols, num_steps, output, seed, [])
-    # print('______________DETERMINISTIC BASE AGENT RUNNING FOR 100 TIMES...___________')
-    # det_sim.play_sim(det, times)
-    # scores = det_sim.scores
-    # print(f'det mean: {np.mean(scores):.2f}, det stdv: {np.std(scores):.2f}')
-    # det_mean = round(np.mean(scores), 3)
-    # det_std = round(np.std(scores), 3)
-    # agents_scores_dict['det_mean'] = det_mean
-    # agents_scores_dict['det_std'] = det_std
+    # ______________RUN PLAY GAME FOR DETERMINISTIC_______________
+    det_sim = Simulation(rows, cols, num_steps, output, seed, [])
+    print('______________DETERMINISTIC BASE AGENT RUNNING FOR 100 TIMES...___________')
+    det_sim.play_sim(det, times)
+    scores = det_sim.scores
+    print(f'det mean: {np.mean(scores):.2f}, det stdv: {np.std(scores):.2f}')
+    det_mean = round(np.mean(scores), 3)
+    det_std = round(np.std(scores), 3)
+    agents_scores_dict['det_mean'] = det_mean
+    agents_scores_dict['det_std'] = det_std
 
     #________________RUN PLAY GAME FOR SARSA AGENT_________________
     sarsa_sim = Simulation(rows, cols, num_steps, output, seed, [])
@@ -316,7 +316,7 @@ def part4():
     # -----------Setting Board Parameters for Training and Baseline-------------------
     rows = 10
     cols = 10
-    num_steps = 20
+    num_steps = 50
     output = False
     seed = 42
     expected_sarsa_error = {}
@@ -556,7 +556,7 @@ if __name__ == '__main__':
     # print("FINISHED UNPACKING")
     #
     # value_dict = value_output[1]
-    #
+
     # print("INITIALIZING PLAYERS")
     #
     # q_player = TDAgent()
@@ -584,8 +584,8 @@ if __name__ == '__main__':
 
 
 
-    # _______________PART 2_____________________
-
+    # # _______________PART 2_____________________
+    #
     # sarsa_agent, q_agent = part2()
     #
     # sarsa_qtable = sarsa_agent.qtable
@@ -602,4 +602,42 @@ if __name__ == '__main__':
     #
     # part4()
 
-    part3_test()
+    # part3_test()
+
+    ql_qtable = unjson("QL4_Output.json")
+    sarsa_qtable = unjson("SARSA4_Output.json")
+
+
+    q_player = TDAgent()
+    q_player.eps = 0.0
+    for key in ql_qtable:
+        q_player.qtable[key] = ql_qtable[key]
+        print(key)
+
+    sarsa_player = TDAgent()
+    sarsa_player.eps = 0.0
+    for key in sarsa_qtable:
+        sarsa_player.qtable[key] = sarsa_qtable[key]
+        print(key)
+    random_agent = RandomAgent()
+    det_agent = Deterministic_Agent()
+    soft = Soft_Deterministic_Agent()
+
+    test_sim = Simulation(10, 10, 50, False, 42, [])
+
+    test_sim.play_sim_save_viz(q_player, 'test_stuff')
+    test_sim.play_sim_save_viz(soft, 'test_stuff')
+
+
+    # value_output = unpickle("value_iteration_output.pickle")
+    # ql_qtable = unjson("QL4_Output.json")
+    # sarsa_qtable = unjson("SARSA4_Output.json")
+    #
+    # print("FINISHED UNPACKING")
+    #
+    # opt_agent = value_output[0]
+    #
+    # test_sim = Simulation(2, 2, 4, False, 42, [])
+    #
+    # # test_sim.play_sim_save_viz(q_player, 'test_stuff')
+    # test_sim.play_sim_save_viz(opt_agent, 'test_stuff')

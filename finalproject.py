@@ -431,7 +431,7 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
     num_episodes = 1
 
     while step < maxsteps and max([abs(v) for v in diffs.values()] or [1.0]) > 0.01:
-        if num_episodes > 1000 and step % 5e5 == 0 and player.eps > 0.1:
+        if num_episodes > 1000 and step % 5e3 == 0 and player.eps > 0.1:
             # scale back the exploration
             player.eps = player.eps / 2
 
@@ -525,7 +525,7 @@ def q_learning(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
     num_episodes = 1
 
     while step < maxsteps and max([abs(v) for v in diffs.values()] or [1.0]) > 0.01:
-        if num_episodes > 1000 and step % 5e5 == 0 and player.eps > 0.1:
+        if num_episodes > 1000 and step % 5e3 == 0 and player.eps > 0.1:
             # scale back the exploration
             player.eps = player.eps / 2
 
