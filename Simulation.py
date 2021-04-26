@@ -459,6 +459,7 @@ def part3_test():
     output = False
     seed = 42
     times = 100
+    test = 0
     agents_scores_dict = {}
     # ________________INITIALIZE THE BASE AGENTS________________
     rand = RandomAgent()
