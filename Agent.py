@@ -35,7 +35,7 @@ class Agent:
         self.age = random.randint(1, 70)
 
         #  how big of a radius can they infect others in
-        self.neighborhood_size = random.uniform(0.5, 3)
+        self.neighborhood_size = random.uniform(0.5, 1.5)
 
         # All of these are initialized here but set in Space.py for speed
         # the number of steps the agent remains infective for

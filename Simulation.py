@@ -8,6 +8,8 @@ Date:
 ---
     10/15/2020
 """
+from random import random
+
 import pygame, sys
 import matplotlib.pyplot as plt
 from pygame.locals import *
@@ -25,6 +27,7 @@ import pandas as pd
 import Space
 from PIL import Image
 import os
+import random
 
 class Simulation:
     def __init__(self, rows: int, cols: int, num_steps: int, output: bool, seed: int, states):
@@ -46,6 +49,9 @@ class Simulation:
         for i in range(times):
             print("game ", i, " running now")
             enum_m = copy.deepcopy(self.m)
+            random_seed = random.randint(0, 20000)
+            print("seed is", random_seed)
+            enum_m = Space.Space(self.rows, self.cols, self.steps, self.output, random_seed)
             while enum_m.steps_taken < enum_m.iterations:
                 action = agent.get_action(enum_m)
                 print("got action")
@@ -103,6 +109,7 @@ class Simulation:
             stills.append(os.path.join(sc_path, "step" + str(enum_m.steps_taken) + ".png"))
 
         self.scores.append(enum_m.infected_count + enum_m.recovered_count)
+        print("SCORE IS: ", enum_m.infected_count + enum_m.recovered_count)
         pygame.quit()
 
         img, *imgs = [Image.open(f) for f in stills]
@@ -247,7 +254,7 @@ def part3(sarsa_agent, q_agent):
     num_steps = 50
     output = False
     seed = 42
-    times = 100
+    times = 50
     agents_scores_dict = {}
     # ________________INITIALIZE THE BASE AGENTS________________
     rand = RandomAgent()
@@ -255,37 +262,37 @@ def part3(sarsa_agent, q_agent):
     soft = Soft_Deterministic_Agent()
 
     #________________RUN PLAY GAME FOR RANDOM________________
-    rand_sim = Simulation(rows, cols, num_steps, output, seed, [])
-    print('______________RANDOM BASE AGENT RUNNING FOR 100 TIMES...___________')
-    rand_sim.play_sim(rand, times)
-    scores = rand_sim.scores
-    print(f'random mean: {np.mean(scores):.2f}, random stdv: {np.std(scores):.2f}')
-    rand_mean = round(np.mean(scores), 3)
-    rand_std = round(np.std(scores), 3)
-    agents_scores_dict['rand_mean'] = rand_mean
-    agents_scores_dict['rand_std'] = rand_std
-
-    #______________RUN PLAY GAME FOR SOFT DETERMINISTIC_______________
-    soft_sim = Simulation(rows, cols, num_steps, output, seed, [])
-    print('______________SOFT DETERMINISTIC BASE AGENT RUNNING FOR 100 TIMES...___________')
-    soft_sim.play_sim(soft, times)
-    scores = soft_sim.scores
-    print(f'soft mean: {np.mean(scores):.2f}, soft stdv: {np.std(scores):.2f}')
-    soft_mean = round(np.mean(scores), 3)
-    soft_std = round(np.std(scores), 3)
-    agents_scores_dict['soft_mean'] = soft_mean
-    agents_scores_dict['soft_std'] = soft_std
-
-    # ______________RUN PLAY GAME FOR DETERMINISTIC_______________
-    det_sim = Simulation(rows, cols, num_steps, output, seed, [])
-    print('______________DETERMINISTIC BASE AGENT RUNNING FOR 100 TIMES...___________')
-    det_sim.play_sim(det, times)
-    scores = det_sim.scores
-    print(f'det mean: {np.mean(scores):.2f}, det stdv: {np.std(scores):.2f}')
-    det_mean = round(np.mean(scores), 3)
-    det_std = round(np.std(scores), 3)
-    agents_scores_dict['det_mean'] = det_mean
-    agents_scores_dict['det_std'] = det_std
+    # rand_sim = Simulation(rows, cols, num_steps, output, seed, [])
+    # print('______________RANDOM BASE AGENT RUNNING FOR 100 TIMES...___________')
+    # rand_sim.play_sim(rand, times)
+    # scores = rand_sim.scores
+    # print(f'random mean: {np.mean(scores):.2f}, random stdv: {np.std(scores):.2f}')
+    # rand_mean = round(np.mean(scores), 3)
+    # rand_std = round(np.std(scores), 3)
+    # agents_scores_dict['rand_mean'] = rand_mean
+    # agents_scores_dict['rand_std'] = rand_std
+    #
+    # #______________RUN PLAY GAME FOR SOFT DETERMINISTIC_______________
+    # soft_sim = Simulation(rows, cols, num_steps, output, seed, [])
+    # print('______________SOFT DETERMINISTIC BASE AGENT RUNNING FOR 100 TIMES...___________')
+    # soft_sim.play_sim(soft, times)
+    # scores = soft_sim.scores
+    # print(f'soft mean: {np.mean(scores):.2f}, soft stdv: {np.std(scores):.2f}')
+    # soft_mean = round(np.mean(scores), 3)
+    # soft_std = round(np.std(scores), 3)
+    # agents_scores_dict['soft_mean'] = soft_mean
+    # agents_scores_dict['soft_std'] = soft_std
+    #
+    # # ______________RUN PLAY GAME FOR DETERMINISTIC_______________
+    # det_sim = Simulation(rows, cols, num_steps, output, seed, [])
+    # print('______________DETERMINISTIC BASE AGENT RUNNING FOR 100 TIMES...___________')
+    # det_sim.play_sim(det, times)
+    # scores = det_sim.scores
+    # print(f'det mean: {np.mean(scores):.2f}, det stdv: {np.std(scores):.2f}')
+    # det_mean = round(np.mean(scores), 3)
+    # det_std = round(np.std(scores), 3)
+    # agents_scores_dict['det_mean'] = det_mean
+    # agents_scores_dict['det_std'] = det_std
 
     #________________RUN PLAY GAME FOR SARSA AGENT_________________
     sarsa_sim = Simulation(rows, cols, num_steps, output, seed, [])
@@ -556,7 +563,7 @@ if __name__ == '__main__':
     # print("FINISHED UNPACKING")
     #
     # value_dict = value_output[1]
-
+    #
     # print("INITIALIZING PLAYERS")
     #
     # q_player = TDAgent()
@@ -584,8 +591,8 @@ if __name__ == '__main__':
 
 
 
-    # # _______________PART 2_____________________
-    #
+    # _______________PART 2_____________________
+
     # sarsa_agent, q_agent = part2()
     #
     # sarsa_qtable = sarsa_agent.qtable
@@ -597,36 +604,51 @@ if __name__ == '__main__':
     # with open('trained_ql_agent.json', 'w') as json_file:
     #     json.dump(ql_qtable, json_file)
     #
+
+
+    # det_agent = Deterministic_Agent()
     #
     # part3(sarsa_agent, q_agent)
-    #
+
     # part4()
 
     # part3_test()
 
-    ql_qtable = unjson("QL4_Output.json")
-    sarsa_qtable = unjson("SARSA4_Output.json")
 
 
-    q_player = TDAgent()
-    q_player.eps = 0.0
-    for key in ql_qtable:
-        q_player.qtable[key] = ql_qtable[key]
-        print(key)
+    #__________VISUALIZATION STUFF______________
 
-    sarsa_player = TDAgent()
-    sarsa_player.eps = 0.0
-    for key in sarsa_qtable:
-        sarsa_player.qtable[key] = sarsa_qtable[key]
-        print(key)
+    # ql_qtable = unjson("QL4_Output.json")
+    # sarsa_qtable = unjson("SARSA4_Output.json")
+    #
+    #
+    # q_player = TDAgent()
+    # q_player.eps = 0.0
+    # for key in ql_qtable:
+    #     q_player.qtable[key] = ql_qtable[key]
+    #     print(key)
+    #
+    # sarsa_player = TDAgent()
+    # sarsa_player.eps = 0.0
+    # for key in sarsa_qtable:
+    #     sarsa_player.qtable[key] = sarsa_qtable[key]
+    #     print(key)
     random_agent = RandomAgent()
     det_agent = Deterministic_Agent()
     soft = Soft_Deterministic_Agent()
+    print("unpacking sarsa q table")
+    sarsa_q_table = unjson('trained_sarsa_agent.json')
+    print("finished unpacking sarsa q table")
+    sarsa_agent = TDAgent()
+    for key in sarsa_q_table:
+        sarsa_agent.qtable[key] = sarsa_q_table[key]
+        print(key)
+    sarsa_agent.eps = 0.0
 
-    test_sim = Simulation(10, 10, 50, False, 42, [])
+    test_sim = Simulation(10, 10, 50, False, 9081, [])
 
-    test_sim.play_sim_save_viz(q_player, 'test_stuff')
-    test_sim.play_sim_save_viz(soft, 'test_stuff')
+    test_sim.play_sim_save_viz(det_agent, 'gifs_V1')
+    test_sim.play_sim_save_viz(random_agent, 'gifs_V1')
 
 
     # value_output = unpickle("value_iteration_output.pickle")
@@ -641,3 +663,15 @@ if __name__ == '__main__':
     #
     # # test_sim.play_sim_save_viz(q_player, 'test_stuff')
     # test_sim.play_sim_save_viz(opt_agent, 'test_stuff')
+
+    # print("unpacking sarsa q table")
+    # sarsa_q_table = unjson('trained_sarsa_agent.json')
+    # print("finished unpacking sarsa q table")
+    # sarsa_agent = TDAgent()
+    # for key in sarsa_q_table:
+    #     sarsa_agent.qtable[key] = sarsa_q_table[key]
+    #     print(key)
+    # sarsa_agent.eps = 0.0
+    # det_agent = Deterministic_Agent()
+    #
+    # part3(sarsa_agent, sarsa_agent)

@@ -458,6 +458,8 @@ def expected_SARSA(state: Space.Space, maxsteps=10000, gamma=0.5, alpha=0.1):
             else:
                 states[str((str(env), str(env.steps_taken)))] = 1
             env = copy.deepcopy(copy_env)
+            random_seed = random.randint(0, 20000)
+            env = Space.Space(copy_env.rows, copy_env.cols, copy_env.iterations, copy_env.output, random_seed)
             s0 = env
             a0 = player.get_action(s0)
             continue# type: ignore
